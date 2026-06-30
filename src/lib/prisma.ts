@@ -1,5 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaNeonHttp } from "@prisma/adapter-neon";
+import { PrismaNeon } from "@prisma/adapter-neon";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -10,7 +10,7 @@ function makePrisma() {
   if (!connectionString) {
     throw new Error("DATABASE_URL 환경변수가 설정되지 않았습니다.");
   }
-  const adapter = new PrismaNeonHttp(connectionString, {});
+  const adapter = new PrismaNeon({ connectionString });
   return new PrismaClient({ adapter });
 }
 
