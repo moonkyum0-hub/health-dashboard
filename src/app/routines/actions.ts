@@ -4,6 +4,7 @@ import { z } from "zod";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ROUTINE_TEMPLATES } from "@/lib/routineTemplates";
 
 const itemSchema = z.object({
   exerciseCatalogId: z.string().optional(),
@@ -82,6 +83,38 @@ export async function updateRoutine(routineId: string, formData: FormData) {
   });
 
   redirect(`/routines/${routineId}`);
+}
+
+export async function addRoutineFromTemplate(templateId: string) {
+  const userId = await requireUserId();
+  const template = ROUTINE_TEMPLATES.find((t) => t.id === templateId);
+  if (!template) throw new Error("존재하지 않는 추천 루틴입니다.");
+
+  const catalogEntries = await prisma.exerciseCatalog.findMany({
+    where: { name: { in: template.exerciseNames } },
+  });
+  const byName = new Map(catalogEntries.map((c) => [c.name, c]));
+
+  const routine = await prisma.routine.create({
+    data: {
+      userId,
+      name: template.name,
+      days: template.days.join(","),
+      items: {
+        create: template.exerciseNames
+          .map((name) => byName.get(name))
+          .filter((c): c is NonNullable<typeof c> => Boolean(c))
+          .map((c, idx) => ({
+            exerciseCatalogId: c.id,
+            durationMin: c.defaultDurationMin,
+            setsReps: c.defaultSetsReps,
+            order: idx,
+          })),
+      },
+    },
+  });
+
+  redirect(`/routines/${routine.id}`);
 }
 
 export async function deleteRoutine(routineId: string) {
