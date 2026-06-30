@@ -29,35 +29,28 @@ export default async function RoutinesPage() {
         </Button>
       </div>
 
-      <p className="mb-6 text-sm text-slate-500">
-        정해진 루틴을 따르는 대신, 운동 카탈로그에서 직접 골라 나만의 루틴을 구성하세요.
-        요일을 지정하면 해당 요일의 새 기록 작성 시 자동으로 불러옵니다.
+      <p className="mb-6 text-sm text-slate-400">
+        요일을 지정하면 기록 작성 시 자동으로 불러옵니다.
       </p>
 
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle className="text-base">상황별 추천 루틴</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4 text-sm text-slate-500">
-            바로 써볼 수 있는 예시 루틴이에요. 추가하면 내 루틴 목록에 복사되고, 자유롭게 수정할 수 있습니다.
-          </p>
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {ROUTINE_TEMPLATES.map((tpl) => (
-              <li key={tpl.id} className="rounded-xl border border-slate-200 p-3">
-                <p className="font-medium">{tpl.name}</p>
-                <p className="mt-1 text-xs text-slate-500">{tpl.description}</p>
-                <p className="mt-2 text-xs text-slate-400">{tpl.exerciseNames.join(" · ")}</p>
-                <form action={addRoutineFromTemplate.bind(null, tpl.id)} className="mt-3">
-                  <Button type="submit" size="sm" variant="outline" className="w-full">
-                    내 루틴에 추가
-                  </Button>
-                </form>
-              </li>
-            ))}
-          </ul>
-        </CardContent>
-      </Card>
+      <div className="mb-8">
+        <h2 className="mb-3 text-sm font-medium text-slate-500">추천 루틴</h2>
+        <ul className="grid gap-2 sm:grid-cols-2">
+          {ROUTINE_TEMPLATES.map((tpl) => (
+            <li key={tpl.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate font-medium text-sm">{tpl.name}</p>
+                <p className="truncate text-xs text-slate-400 mt-0.5">{tpl.description}</p>
+              </div>
+              <form action={addRoutineFromTemplate.bind(null, tpl.id)} className="shrink-0">
+                <Button type="submit" size="sm" variant="outline" className="rounded-full">
+                  + 추가
+                </Button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       {routines.length === 0 ? (
         <p className="text-sm text-slate-400">아직 만든 루틴이 없습니다.</p>
