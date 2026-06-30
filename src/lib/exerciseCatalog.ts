@@ -1,0 +1,216 @@
+import type { PoseKey } from "@/lib/poses";
+
+export type ExerciseCategory = "CORE" | "UPPER" | "LOWER" | "FLEXIBILITY" | "CARDIO";
+
+export const CATEGORY_LABEL: Record<ExerciseCategory, string> = {
+  CORE: "코어",
+  UPPER: "상지",
+  LOWER: "하체",
+  FLEXIBILITY: "유연성",
+  CARDIO: "심혈관",
+};
+
+export const CATEGORY_ORDER: ExerciseCategory[] = [
+  "CORE",
+  "UPPER",
+  "LOWER",
+  "FLEXIBILITY",
+  "CARDIO",
+];
+
+export interface CatalogExerciseSeed {
+  name: string;
+  category: ExerciseCategory;
+  description: string;
+  benefit: string;
+  cue: string;
+  defaultDurationMin: number;
+  defaultSetsReps?: string;
+  poseStart: PoseKey;
+  poseEnd: PoseKey;
+  videoUrl?: string;
+}
+
+export const CATALOG_SEED: CatalogExerciseSeed[] = [
+  {
+    name: "플랭크",
+    category: "CORE",
+    description: "팔꿈치와 발끝으로 몸을 일직선으로 지탱하는 정적 코어 운동입니다.",
+    benefit: "복직근·복횡근을 자극해 장시간 착석 시 척추를 지지하는 근력 버팀목을 만들어줍니다.",
+    cue: "골반이 처지거나 솟지 않도록 머리부터 발끝까지 일직선을 유지하세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "45초 유지 / 15초 휴식 × 3세트",
+    poseStart: "PLANK",
+    poseEnd: "PLANK",
+  },
+  {
+    name: "브릿지",
+    category: "CORE",
+    description: "누운 상태에서 골반을 들어 올려 둔근과 코어를 동시에 쓰는 운동입니다.",
+    benefit: "대둔근을 활성화해 둔근기억상실증을 예방하고 요추 안정성을 확보합니다.",
+    cue: "허리가 꺾이지 않게 엉덩이 힘으로 들어 올리세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "15회 × 3세트",
+    poseStart: "BRIDGE_DOWN",
+    poseEnd: "BRIDGE_UP",
+  },
+  {
+    name: "데드버그",
+    category: "CORE",
+    description: "누운 채로 팔다리를 교차로 뻗어 코어 안정성을 훈련합니다.",
+    benefit: "복횡근과 고관절 굴곡근의 협응을 길러 허리 부담을 줄여줍니다.",
+    cue: "허리가 바닥에서 뜨지 않도록 코어에 힘을 유지하세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "좌우 10회 × 2세트",
+    poseStart: "DEADBUG",
+    poseEnd: "DEADBUG",
+  },
+  {
+    name: "Y-W-T 교정 운동",
+    category: "UPPER",
+    description: "엎드린 자세에서 팔로 Y·W·T 모양을 그리며 등 근육을 쓰는 교정 운동입니다.",
+    benefit: "전거근·하부승모근을 강화해 상지교차증후군과 말린 어깨를 완화합니다.",
+    cue: "엄지손가락이 하늘을 향하게 팔을 들어 올리세요.",
+    defaultDurationMin: 4,
+    defaultSetsReps: "각 동작 10회 × 2세트",
+    poseStart: "PRONE_ARM_DOWN",
+    poseEnd: "PRONE_ARM_UP",
+  },
+  {
+    name: "밴드 풀 어파트",
+    category: "UPPER",
+    description: "탄력 밴드를 양손으로 잡고 가슴 앞에서 좌우로 당기는 운동입니다.",
+    benefit: "능형근과 후면 삼각근을 강화해 라운드 숄더를 교정합니다.",
+    cue: "팔꿈치를 펴고 견갑골을 모으는 느낌으로 당기세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "15회 × 3세트",
+    poseStart: "STANDING",
+    poseEnd: "STANDING_ARMS_UP",
+  },
+  {
+    name: "무릎 푸쉬업",
+    category: "UPPER",
+    description: "무릎을 바닥에 댄 상태로 수행하는 초급 푸쉬업입니다.",
+    benefit: "대흉근과 삼두근을 자극해 상체 기본 근력을 길러줍니다.",
+    cue: "몸통이 일직선을 유지하도록 코어에 힘을 주세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "10회 × 3세트",
+    poseStart: "PUSHUP_DOWN",
+    poseEnd: "KNEELING_PUSHUP_UP",
+  },
+  {
+    name: "맨몸 스쿼트",
+    category: "LOWER",
+    description: "체중만으로 무릎과 고관절을 굽혀 앉았다 일어나는 기본 하체 운동입니다.",
+    benefit: "대퇴사두근·대둔근 수축으로 정맥혈을 펌핑해 아침 각성 효과를 줍니다.",
+    cue: "무릎이 발끝을 넘지 않도록 골반을 뒤로 빼며 앉으세요.",
+    defaultDurationMin: 4,
+    defaultSetsReps: "20회 × 3세트",
+    poseStart: "STANDING",
+    poseEnd: "SQUAT_DOWN",
+  },
+  {
+    name: "런지",
+    category: "LOWER",
+    description: "한 발을 앞으로 내딛어 무릎을 굽히는 편측 하체 운동입니다.",
+    benefit: "대퇴사두근과 둔근을 강화하고 좌우 균형감각을 길러줍니다.",
+    cue: "앞 무릎이 발끝을 넘지 않게, 상체는 곧게 세우세요.",
+    defaultDurationMin: 3,
+    defaultSetsReps: "좌우 10회 × 2세트",
+    poseStart: "STANDING",
+    poseEnd: "LUNGE",
+  },
+  {
+    name: "카프레이즈",
+    category: "LOWER",
+    description: "발끝으로 서서 종아리를 들어 올리는 운동입니다.",
+    benefit: "비복근 펌핑으로 정맥혈 순환을 도와 하지 부종과 피로를 줄여줍니다.",
+    cue: "천천히 올렸다가 천천히 내려 자극을 유지하세요.",
+    defaultDurationMin: 2,
+    defaultSetsReps: "20회 × 3세트",
+    poseStart: "CALF_RAISE_DOWN",
+    poseEnd: "CALF_RAISE_UP",
+  },
+  {
+    name: "고양이-소 자세",
+    category: "FLEXIBILITY",
+    description: "네발기기 자세에서 등을 둥글게 말았다가 늘이는 스트레칭입니다.",
+    benefit: "척추기립근의 긴장을 완화하고 교감신경의 과도한 흥분을 가라앉힙니다.",
+    cue: "호흡에 맞춰 천천히 등을 말고 늘여주세요.",
+    defaultDurationMin: 3,
+    poseStart: "CAT_ROUND",
+    poseEnd: "CAT_ARCH",
+  },
+  {
+    name: "폼롤러 릴리즈",
+    category: "FLEXIBILITY",
+    description: "폼롤러로 뭉친 근육을 천천히 압박하며 풀어주는 회복 운동입니다.",
+    benefit: "근막 이완을 통해 혈액·림프 순환을 촉진하고 피로 물질을 제거합니다.",
+    cue: "아픈 지점에서는 멈춰 5~10초간 압박하세요.",
+    defaultDurationMin: 5,
+    poseStart: "FOAM_ROLL",
+    poseEnd: "FOAM_ROLL",
+  },
+  {
+    name: "목/어깨 가동성 운동",
+    category: "FLEXIBILITY",
+    description: "목과 어깨를 큰 원을 그리듯 천천히 돌려주는 가동성 운동입니다.",
+    benefit: "관절 활액의 점도를 낮춰 가동 범위를 회복시킵니다.",
+    cue: "통증이 없는 범위 내에서 천천히 돌리세요.",
+    defaultDurationMin: 2,
+    poseStart: "STANDING",
+    poseEnd: "STANDING",
+  },
+  {
+    name: "슬로우 버피",
+    category: "CARDIO",
+    description: "점프 없이 천천히 진행하는 전신 순환 운동입니다.",
+    benefit: "급격한 혈압 상승 없이 심박수를 완만히 올려 뇌로 가는 산소 공급을 활성화합니다.",
+    cue: "한 발씩 천천히 짚고 돌아오세요.",
+    defaultDurationMin: 3,
+    poseStart: "SQUAT_DOWN",
+    poseEnd: "PLANK",
+  },
+  {
+    name: "마운틴 클라이머",
+    category: "CARDIO",
+    description: "플랭크 자세에서 무릎을 빠르게 교차로 당겨오는 전신 운동입니다.",
+    benefit: "심박수를 높이고 코어와 하체를 동시에 자극합니다.",
+    cue: "골반 높이를 일정하게 유지하세요.",
+    defaultDurationMin: 2,
+    defaultSetsReps: "30초 × 3세트",
+    poseStart: "MOUNTAIN_CLIMBER_A",
+    poseEnd: "MOUNTAIN_CLIMBER_B",
+  },
+  {
+    name: "제자리 걷기 / 계단 오르기",
+    category: "CARDIO",
+    description: "다리를 가볍게 움직여 혈류를 촉진하는 저강도 유산소 운동입니다.",
+    benefit: "부담 없이 혈류를 촉진해 가벼운 각성과 컨디션 개선에 도움을 줍니다.",
+    cue: "숨이 가쁘지 않게, 편안하게 호흡할 수 있는 속도를 유지하세요.",
+    defaultDurationMin: 5,
+    poseStart: "STANDING",
+    poseEnd: "WALK_STAIRS",
+  },
+  {
+    name: "러닝",
+    category: "CARDIO",
+    description: "일정한 속도로 달리며 전신 심혈관계를 자극하는 대표적인 유산소 운동입니다.",
+    benefit: "심박수와 폐활량을 높여 심혈관 건강을 개선하고, 엔도르핀 분비로 스트레스 해소에도 도움을 줍니다.",
+    cue: "발 중간~앞쪽으로 가볍게 착지하고, 시선은 정면을 유지하세요.",
+    defaultDurationMin: 20,
+    defaultSetsReps: "주 2~3회, 회당 20~30분",
+    poseStart: "RUN_STEP_A",
+    poseEnd: "RUN_STEP_B",
+  },
+  {
+    name: "심호흡 및 명상",
+    category: "FLEXIBILITY",
+    description: "편안히 앉아 깊게 숨을 들이쉬고 내쉬는 호흡 명상입니다.",
+    benefit: "부교감신경계를 자극해 코르티솔 수치를 안정시키고 마음의 안정감을 높입니다.",
+    cue: "코로 4초 들이쉬고 입으로 6초간 천천히 내쉬세요.",
+    defaultDurationMin: 3,
+    poseStart: "SEATED_BREATHE",
+    poseEnd: "SEATED_BREATHE",
+  },
+];
