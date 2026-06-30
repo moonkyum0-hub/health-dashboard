@@ -136,7 +136,9 @@ export default async function DashboardPage() {
                     <div key={item.label} className="rounded-xl border border-slate-100 p-3">
                       <p className="text-xs text-slate-400">{item.label}</p>
                       <p className="mt-1 text-lg font-semibold">
-                        {item.later != null ? Math.round(item.later * 10) / 10 : "-"}
+                        {(item.later ?? item.earlier) != null
+                          ? Math.round((item.later ?? item.earlier)! * 10) / 10
+                          : "-"}
                         <span className="ml-1 text-xs font-normal text-slate-400">{item.unit}</span>
                       </p>
                       {item.changePercent != null && (
@@ -153,7 +155,9 @@ export default async function DashboardPage() {
                   ))}
                 </div>
                 <p className="mt-3 text-xs text-slate-400">
-                  최근 기록 {roleMetric.sampleSize}건을 절반으로 나누어 비교한 값으로, 입력하신 데이터에서 자동으로 계산됩니다.
+                  {roleMetric.sampleSize < 2
+                    ? "현재 기록 기준 값이에요. 기록이 2건 이상 쌓이면 전반·후반 비교와 변화율이 표시됩니다."
+                    : `최근 기록 ${roleMetric.sampleSize}건을 절반으로 나누어 비교한 값으로, 입력하신 데이터에서 자동으로 계산됩니다.`}
                 </p>
               </CardContent>
             </Card>
