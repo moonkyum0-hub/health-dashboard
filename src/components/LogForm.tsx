@@ -690,6 +690,13 @@ export default function LogForm({
             </Field>
           </div>
 
+          <EnergyAnalysis
+            morning={energyMorning}
+            afternoon={energyAfternoon}
+            evening={energyEvening}
+            focus={studyFocusScore}
+          />
+
           <div className="mt-4 grid gap-4 sm:grid-cols-3">
             <div>
               <Label className="mb-1 block text-sm font-normal text-slate-500">
@@ -723,6 +730,106 @@ export default function LogForm({
         {submitting ? "저장 중..." : "기록 저장하기"}
       </Button>
     </form>
+  );
+}
+
+type EnergyLevel = "high" | "mid" | "low";
+
+function toLevel(v: string): EnergyLevel | null {
+  const n = Number(v);
+  if (!v || isNaN(n) || n <= 0) return null;
+  if (n >= 7) return "high";
+  if (n >= 4) return "mid";
+  return "low";
+}
+
+function EnergyAnalysis({
+  morning, afternoon, evening, focus,
+}: {
+  morning: string; afternoon: string; evening: string; focus: string;
+}) {
+  const vals = [morning, afternoon, evening].map(Number).filter((_, i) =>
+    [morning, afternoon, evening][i] !== ""
+  );
+  const hasEnergy = vals.length > 0;
+  const hasFocus = focus !== "";
+  if (!hasEnergy && !hasFocus) return null;
+
+  const avgEnergy = hasEnergy ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  const mornN = morning !== "" ? Number(morning) : null;
+  const evenN = evening !== "" ? Number(evening) : null;
+  const energyDrop = mornN !== null && evenN !== null && mornN - evenN >= 3;
+
+  const eLevel = avgEnergy !== null ? toLevel(String(Math.round(avgEnergy))) : null;
+  const fLevel = hasFocus ? toLevel(focus) : null;
+
+  let badge = "";
+  let badgeColor = "";
+  let message = "";
+
+  if (eLevel === "high" && fLevel === "high") {
+    badge = "최상 컨디션"; badgeColor = "bg-green-100 text-green-800";
+    message = "에너지와 집중도 모두 높은 이상적인 상태예요. 오늘 학습 효율이 높을 가능성이 커요. 이 컨디션을 만든 수면·운동 패턴을 기록해두면 나중에 좋은 참고가 돼요.";
+  } else if (eLevel === "high" && fLevel === "mid") {
+    badge = "에너지 양호"; badgeColor = "bg-blue-100 text-blue-800";
+    message = "몸 상태는 좋은데 집중도가 보통이에요. 학습 환경 소음, 스마트폰 등 외부 방해 요소를 점검해보세요. 짧은 집중-휴식 사이클(25분 집중 + 5분 휴식)을 활용하면 도움이 돼요.";
+  } else if (eLevel === "high" && fLevel === "low") {
+    badge = "집중 저하 주의"; badgeColor = "bg-yellow-100 text-yellow-800";
+    message = "에너지는 충분한데 집중이 잘 안 되는 상태예요. 과도한 정보량이나 수면 리듬 불균형이 원인일 수 있어요. 5~10분 가벼운 스트레칭 후 다시 시도해보세요.";
+  } else if (eLevel === "mid" && fLevel === "high") {
+    badge = "집중력 양호"; badgeColor = "bg-blue-100 text-blue-800";
+    message = "에너지는 보통이지만 집중력이 좋은 상태예요. 적당한 긴장감이 오히려 집중에 도움이 되고 있어요. 에너지 보충을 위해 수분 섭취와 짧은 휴식을 챙기세요.";
+  } else if (eLevel === "mid" && fLevel === "mid") {
+    badge = "보통 컨디션"; badgeColor = "bg-slate-100 text-slate-700";
+    message = "에너지와 집중도가 모두 보통 수준이에요. 가벼운 유산소 운동(10~15분 걷기)이 에너지와 집중도를 동시에 올려주는 효과가 있어요. 수면 시간도 점검해보세요.";
+  } else if (eLevel === "mid" && fLevel === "low") {
+    badge = "컨디션 저하"; badgeColor = "bg-orange-100 text-orange-800";
+    message = "전반적으로 컨디션이 다소 저하된 상태예요. 누적 피로이거나 수면 부족일 수 있어요. 억지로 집중하기보다 짧은 회복 시간을 갖고 다시 시작하는 게 효율적이에요.";
+  } else if (eLevel === "low" && fLevel === "high") {
+    badge = "의지력으로 집중 중"; badgeColor = "bg-yellow-100 text-yellow-800";
+    message = "몸은 피곤하지만 집중력으로 버티고 있는 상태예요. 수분 섭취와 스트레칭을 꼭 챙기고, 너무 무리하지 않도록 주의하세요. 오늘 취침을 평소보다 30분 일찍 하는 게 좋아요.";
+  } else if (eLevel === "low" && fLevel === "mid") {
+    badge = "피로 상태"; badgeColor = "bg-orange-100 text-orange-800";
+    message = "에너지가 낮고 집중도도 떨어지고 있어요. 수면 부족이나 영양 섭취 불균형이 원인일 수 있어요. 오늘 운동 강도를 낮추고 충분한 수분과 영양 섭취에 집중하세요.";
+  } else if (eLevel === "low" && fLevel === "low") {
+    badge = "충분한 회복 필요"; badgeColor = "bg-red-100 text-red-800";
+    message = "에너지와 집중도가 모두 많이 낮은 상태예요. 억지로 공부나 강한 운동을 강행하면 효과가 없고 회복을 더 늦출 수 있어요. 오늘은 가벼운 스트레칭과 충분한 수면을 우선시하세요.";
+  } else if (!hasFocus && eLevel === "high") {
+    badge = "에너지 양호"; badgeColor = "bg-green-100 text-green-800";
+    message = "오늘 에너지 상태가 좋은 편이에요. 집중도도 함께 기록하면 더 정확한 분석이 가능해요.";
+  } else if (!hasFocus && eLevel === "mid") {
+    badge = "보통 컨디션"; badgeColor = "bg-slate-100 text-slate-700";
+    message = "에너지가 보통 수준이에요. 집중도 점수도 함께 기록해보세요.";
+  } else if (!hasFocus && eLevel === "low") {
+    badge = "에너지 저하"; badgeColor = "bg-orange-100 text-orange-800";
+    message = "오늘 에너지가 낮은 편이에요. 수분 섭취, 가벼운 스트레칭, 수면 시간을 확인해보세요.";
+  } else if (!hasEnergy && fLevel === "high") {
+    badge = "집중 양호"; badgeColor = "bg-green-100 text-green-800";
+    message = "집중도가 높은 상태예요. 에너지 수준도 함께 기록하면 더 의미 있는 분석이 가능해요.";
+  } else if (!hasEnergy && fLevel === "mid") {
+    badge = "집중 보통"; badgeColor = "bg-slate-100 text-slate-700";
+    message = "집중도가 보통 수준이에요. 에너지 점수도 함께 기록해보세요.";
+  } else if (!hasEnergy && fLevel === "low") {
+    badge = "집중 저하"; badgeColor = "bg-orange-100 text-orange-800";
+    message = "집중이 잘 안 되는 상태예요. 짧은 휴식이나 자리 이동이 도움이 될 수 있어요.";
+  }
+
+  const dropNote = energyDrop
+    ? " 오전보다 저녁 에너지가 크게 떨어졌어요. 오후 짧은 낮잠(10~20분)이나 스트레칭이 에너지 회복에 효과적이에요."
+    : "";
+
+  return (
+    <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm">
+      <div className="mb-1.5 flex items-center gap-2">
+        <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${badgeColor}`}>
+          {badge}
+        </span>
+        <span className="text-xs text-slate-400">오늘의 상태 분석</span>
+      </div>
+      <p className="leading-relaxed text-slate-700">
+        {message}{dropNote}
+      </p>
+    </div>
   );
 }
 
