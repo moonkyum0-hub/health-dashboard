@@ -132,6 +132,9 @@ model DailyLog {
   studyFocusScore   Int?
   studyFocusMinutes Int?
   reactionTimeMs    Float?
+  stroopAccuracy    Int?
+  stroopAvgMs       Float?
+  balanceSec        Float?
 
   totalExerciseMin Int?
   overallRPE       Int?

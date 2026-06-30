@@ -8,6 +8,8 @@ import {
 } from "@/lib/exerciseCatalog";
 import CategoryIcon from "@/components/icons/CategoryIcon";
 import ReactionTimeTest from "@/components/ReactionTimeTest";
+import StroopTest, { type StroopResult } from "@/components/StroopTest";
+import BalanceTest from "@/components/BalanceTest";
 import { createDailyLog } from "@/app/log/new/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -138,6 +140,8 @@ export default function LogForm({
   const [studyFocusScore, setStudyFocusScore] = useState("");
   const [studyFocusMinutes, setStudyFocusMinutes] = useState("");
   const [reactionTimeMs, setReactionTimeMs] = useState<number | null>(null);
+  const [stroopResult, setStroopResult] = useState<StroopResult | null>(null);
+  const [balanceSec, setBalanceSec] = useState<number | null>(null);
   const [overallRPE, setOverallRPE] = useState("");
   const [exerciseNotes, setExerciseNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -259,6 +263,9 @@ export default function LogForm({
       studyFocusScore: studyFocusScore || undefined,
       studyFocusMinutes: studyFocusMinutes || undefined,
       reactionTimeMs: reactionTimeMs ?? undefined,
+      stroopAccuracy: stroopResult?.accuracy ?? undefined,
+      stroopAvgMs: stroopResult?.avgMs ?? undefined,
+      balanceSec: balanceSec ?? undefined,
       overallRPE: overallRPE || undefined,
       totalExerciseMin,
       exerciseNotes,
@@ -334,7 +341,10 @@ export default function LogForm({
                 placeholder="취침/기상 시간 입력 시 자동 계산"
               />
             </Field>
-            <Field label="수면 질 (1-10)">
+            <Field
+              label="수면 질 (1-10)"
+              hint="얼마나 푹 잤는지에 대한 주관적인 느낌이에요. 1=거의 못 잤다, 5=그저 그랬다, 10=정말 개운하게 잤다 기준으로 적어주세요."
+            >
               <Input
                 type="number"
                 min={1}
@@ -420,14 +430,19 @@ export default function LogForm({
                       updateExercise(idx, { durationMin: Number(e.target.value) })
                     }
                   />
-                  <Input
-                    type="number"
-                    placeholder="RPE"
-                    min={0}
-                    max={10}
-                    value={ex.rpe}
-                    onChange={(e) => updateExercise(idx, { rpe: e.target.value })}
-                  />
+                  <div className="relative flex items-center">
+                    <Input
+                      type="number"
+                      placeholder="RPE"
+                      min={0}
+                      max={10}
+                      value={ex.rpe}
+                      onChange={(e) => updateExercise(idx, { rpe: e.target.value })}
+                    />
+                    <span className="absolute right-2">
+                      <HintBadge text="RPE = 운동 자각도. 이 운동이 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다." />
+                    </span>
+                  </div>
                   <div className="flex items-center gap-3 text-sm">
                     <Label className="flex items-center gap-1.5">
                       <Checkbox
@@ -537,7 +552,10 @@ export default function LogForm({
                 {totalExerciseMin}
               </div>
             </Field>
-            <Field label="전체 RPE (1-10)">
+            <Field
+              label="전체 RPE (1-10)"
+              hint="RPE = 운동 자각도. 오늘 운동 전체가 체감상 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다."
+            >
               <Input
                 type="number"
                 min={0}
@@ -618,7 +636,10 @@ export default function LogForm({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <Field label="오전 에너지(1-10)">
+            <Field
+              label="오전 에너지(1-10)"
+              hint="아침 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
+            >
               <Input
                 type="number"
                 min={0}
@@ -627,7 +648,10 @@ export default function LogForm({
                 onChange={(e) => setEnergyMorning(e.target.value)}
               />
             </Field>
-            <Field label="오후 에너지(1-10)">
+            <Field
+              label="오후 에너지(1-10)"
+              hint="점심 이후 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
+            >
               <Input
                 type="number"
                 min={0}
@@ -636,7 +660,10 @@ export default function LogForm({
                 onChange={(e) => setEnergyAfternoon(e.target.value)}
               />
             </Field>
-            <Field label="저녁 에너지(1-10)">
+            <Field
+              label="저녁 에너지(1-10)"
+              hint="저녁 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
+            >
               <Input
                 type="number"
                 min={0}
@@ -645,7 +672,10 @@ export default function LogForm({
                 onChange={(e) => setEnergyEvening(e.target.value)}
               />
             </Field>
-            <Field label="오전 집중도(1-10)">
+            <Field
+              label="오전 집중도(1-10)"
+              hint="공부할 때 얼마나 집중이 잘 됐는지를 1~10으로 표현해요. 1=전혀 집중 안 됨, 10=완전히 몰입함."
+            >
               <Input
                 type="number"
                 min={0}
@@ -663,11 +693,25 @@ export default function LogForm({
             </Field>
           </div>
 
-          <div className="mt-4">
-            <Label className="mb-1 block text-sm font-normal text-slate-500">
-              반응속도 테스트 (객관적 집중도·각성도 측정)
-            </Label>
-            <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} />
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <div>
+              <Label className="mb-1 block text-sm font-normal text-slate-500">
+                반응속도 테스트 (각성도)
+              </Label>
+              <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} />
+            </div>
+            <div>
+              <Label className="mb-1 block text-sm font-normal text-slate-500">
+                스트룹 테스트 (주의력·실행기능)
+              </Label>
+              <StroopTest value={stroopResult} onChange={setStroopResult} />
+            </div>
+            <div>
+              <Label className="mb-1 block text-sm font-normal text-slate-500">
+                한 발 서기 (균형 능력)
+              </Label>
+              <BalanceTest value={balanceSec} onChange={setBalanceSec} />
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -687,17 +731,40 @@ export default function LogForm({
 
 function Field({
   label,
+  hint,
   children,
   className,
 }: {
   label: string;
+  hint?: string;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
     <Label className={`flex flex-col items-stretch gap-1 text-sm font-normal ${className ?? ""}`}>
-      <span className="text-slate-500">{label}</span>
+      <span className="flex items-center gap-1 text-slate-500">
+        {label}
+        {hint && <HintBadge text={hint} />}
+      </span>
       {children}
     </Label>
+  );
+}
+
+function HintBadge({ text }: { text: string }) {
+  return (
+    <span className="group/hint relative inline-flex">
+      <button
+        type="button"
+        tabIndex={0}
+        className="flex h-3.5 w-3.5 cursor-help items-center justify-center rounded-full border border-slate-300 text-[9px] leading-none text-slate-400"
+        aria-label="설명 보기"
+      >
+        ?
+      </button>
+      <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1.5 w-52 -translate-x-1/2 rounded-lg bg-slate-900 px-2.5 py-1.5 text-xs leading-snug font-normal whitespace-normal text-white opacity-0 shadow-lg transition-opacity group-hover/hint:opacity-100 group-focus-within/hint:opacity-100">
+        {text}
+      </span>
+    </span>
   );
 }

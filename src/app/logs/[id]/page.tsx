@@ -58,6 +58,18 @@ export default async function LogDetailPage({
                 label="반응속도(객관적)"
                 value={log.reactionTimeMs ? `${log.reactionTimeMs}ms` : null}
               />
+              <Stat
+                label="스트룹 정확도(객관적)"
+                value={log.stroopAccuracy !== null ? `${log.stroopAccuracy}%` : null}
+              />
+              <Stat
+                label="스트룹 평균반응(객관적)"
+                value={log.stroopAvgMs ? `${log.stroopAvgMs}ms` : null}
+              />
+              <Stat
+                label="균형 유지(객관적)"
+                value={log.balanceSec !== null ? `${log.balanceSec}초` : null}
+              />
               <Stat label="집중 지속(분)" value={log.studyFocusMinutes} />
               <Stat label="총 운동(분)" value={log.totalExerciseMin} />
               <Stat label="전체 RPE" value={log.overallRPE} />
