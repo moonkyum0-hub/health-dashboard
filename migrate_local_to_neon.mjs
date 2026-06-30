@@ -1,6 +1,11 @@
 /**
- * 로컬 SQLite (dev.db) → Neon Postgres 데이터 마이그레이션
- * 실행법: $env:DATABASE_URL="postgres://..."; node migrate_local_to_neon.mjs
+ * 로컬 SQLite (dev.db) → Neon Postgres 마이그레이션
+ *
+ * 실행법:
+ *   $env:DATABASE_URL = "postgresql://user:pass@host/db?sslmode=require"
+ *   node migrate_local_to_neon.mjs
+ *
+ * DATABASE_URL 은 Vercel 대시보드 → Environments → Production → DATABASE_URL 에서 복사하세요.
  */
 
 import Database from "better-sqlite3";
@@ -13,13 +18,36 @@ const dbPath = resolve(__dirname, "dev.db");
 
 const neonUrl = process.env.DATABASE_URL;
 if (!neonUrl || !neonUrl.startsWith("postgres")) {
-  console.error("❌ DATABASE_URL 환경변수에 Neon 연결 문자열을 설정해주세요.");
-  console.error("   예) $env:DATABASE_URL=\"postgresql://user:pass@host/db?sslmode=require\"");
+  console.error("❌ DATABASE_URL이 설정되지 않았습니다.");
+  console.error('   PowerShell: $env:DATABASE_URL = "postgresql://..."');
+  console.error("   Vercel 대시보드 → Environments → Production → DATABASE_URL 에서 복사하세요.");
   process.exit(1);
 }
 
 const sql = neon(neonUrl);
 const db = new Database(dbPath, { readonly: true });
+
+// 로컬 테이블의 실제 컬럼 목록을 가져옴 (신/구 스키마 모두 대응)
+function getColumns(table) {
+  return db.prepare(`PRAGMA table_info("${table}")`).all().map((r) => r.name);
+}
+
+function colOrNull(cols, name, val) {
+  if (!cols.includes(name)) return "NULL";
+  if (val === null || val === undefined) return "NULL";
+  if (typeof val === "string") return `'${val.replace(/'/g, "''")}'`;
+  if (typeof val === "boolean") return val ? "true" : "false";
+  return String(val);
+}
+
+function strOrNull(v) {
+  if (v === null || v === undefined) return "NULL";
+  return `'${String(v).replace(/'/g, "''")}'`;
+}
+
+function dateStr(v) {
+  return `'${new Date(v).toISOString()}'`;
+}
 
 let migrated = 0, skipped = 0;
 
@@ -28,67 +56,57 @@ async function tryInsert(label, query) {
     await sql(query);
     migrated++;
   } catch (e) {
-    if (e.message?.includes("duplicate key") || e.message?.includes("unique")) {
+    if (e.message?.includes("duplicate") || e.message?.includes("unique")) {
       skipped++;
     } else {
-      console.warn(`  ⚠ ${label}: ${e.message}`);
+      console.warn(`  ⚠ ${label}: ${e.message?.slice(0, 120)}`);
       skipped++;
     }
   }
 }
 
-// ── Users ────────────────────────────────────────────────────────────────────
-console.log("👤 Users 마이그레이션...");
-const users = db.prepare("SELECT * FROM User").all();
+// ── Users ──────────────────────────────────────────────────────
+console.log("\n👤 Users...");
+const users = db.prepare('SELECT * FROM "User"').all();
 for (const u of users) {
   await tryInsert(`User ${u.email}`, `
     INSERT INTO "User" (id, email, "passwordHash", name, role, "accountType", "createdAt")
     VALUES (
-      '${u.id}', '${u.email.replace(/'/g, "''")}',
-      '${u.passwordHash.replace(/'/g, "''")}',
-      ${u.name ? `'${u.name.replace(/'/g, "''")}'` : "NULL"},
-      ${u.role ? `'${u.role}'` : "NULL"},
-      '${u.accountType ?? "USER"}',
-      '${new Date(u.createdAt).toISOString()}'
+      '${u.id}', ${strOrNull(u.email)}, ${strOrNull(u.passwordHash)},
+      ${strOrNull(u.name)}, ${strOrNull(u.role)},
+      '${u.accountType ?? "USER"}', ${dateStr(u.createdAt)}
     ) ON CONFLICT (id) DO NOTHING
   `);
 }
-console.log(`  → ${users.length}명 처리 (migrated: ${migrated}, skipped: ${skipped})`);
+console.log(`  ${users.length}명 처리`);
 
-// ── Routines ─────────────────────────────────────────────────────────────────
-let m = migrated, s = skipped;
-console.log("🏃 Routines 마이그레이션...");
-const routines = db.prepare("SELECT * FROM Routine").all();
+// ── Routines ────────────────────────────────────────────────────
+console.log("🏃 Routines...");
+const routines = db.prepare('SELECT * FROM "Routine"').all();
 for (const r of routines) {
   await tryInsert(`Routine ${r.id}`, `
     INSERT INTO "Routine" (id, "userId", name, days, "createdAt", "updatedAt")
-    VALUES (
-      '${r.id}', '${r.userId}', '${r.name.replace(/'/g, "''")}',
-      '${r.days}', '${new Date(r.createdAt).toISOString()}',
-      '${new Date(r.updatedAt).toISOString()}'
-    ) ON CONFLICT (id) DO NOTHING
+    VALUES ('${r.id}', '${r.userId}', ${strOrNull(r.name)}, ${strOrNull(r.days)},
+      ${dateStr(r.createdAt)}, ${dateStr(r.updatedAt)})
+    ON CONFLICT (id) DO NOTHING
   `);
 }
-const routineItems = db.prepare("SELECT * FROM RoutineItem").all();
+const routineItems = db.prepare('SELECT * FROM "RoutineItem"').all();
 for (const ri of routineItems) {
   await tryInsert(`RoutineItem ${ri.id}`, `
     INSERT INTO "RoutineItem" (id, "routineId", "exerciseCatalogId", "customName", "order", "durationMin", "setsReps")
-    VALUES (
-      '${ri.id}', '${ri.routineId}',
-      ${ri.exerciseCatalogId ? `'${ri.exerciseCatalogId}'` : "NULL"},
-      ${ri.customName ? `'${ri.customName.replace(/'/g, "''")}'` : "NULL"},
-      ${ri.order},
-      ${ri.durationMin ?? "NULL"},
-      ${ri.setsReps ? `'${ri.setsReps.replace(/'/g, "''")}'` : "NULL"}
-    ) ON CONFLICT (id) DO NOTHING
+    VALUES ('${ri.id}', '${ri.routineId}',
+      ${strOrNull(ri.exerciseCatalogId)}, ${strOrNull(ri.customName)},
+      ${ri.order}, ${ri.durationMin ?? "NULL"}, ${strOrNull(ri.setsReps)})
+    ON CONFLICT (id) DO NOTHING
   `);
 }
-console.log(`  → 루틴 ${routines.length}개, 항목 ${routineItems.length}개 (new migrated: ${migrated - m}, skipped: ${skipped - s})`);
+console.log(`  루틴 ${routines.length}개, 항목 ${routineItems.length}개 처리`);
 
-// ── DailyLogs ─────────────────────────────────────────────────────────────────
-m = migrated; s = skipped;
-console.log("📅 DailyLogs 마이그레이션...");
-const dailyLogs = db.prepare("SELECT * FROM DailyLog").all();
+// ── DailyLogs ───────────────────────────────────────────────────
+console.log("📅 DailyLogs...");
+const dlCols = getColumns("DailyLog");
+const dailyLogs = db.prepare('SELECT * FROM "DailyLog"').all();
 for (const l of dailyLogs) {
   await tryInsert(`DailyLog ${l.id}`, `
     INSERT INTO "DailyLog" (
@@ -100,89 +118,68 @@ for (const l of dailyLogs) {
       "stroopAccuracy", "stroopAvgMs", "balanceSec",
       "createdAt", "updatedAt"
     ) VALUES (
-      '${l.id}', '${l.userId}', '${new Date(l.date).toISOString()}',
-      '${l.dayOfWeek}', '${l.routine.replace(/'/g, "''")}',
-      ${l.bedTime ? `'${l.bedTime}'` : "NULL"},
-      ${l.wakeTime ? `'${l.wakeTime}'` : "NULL"},
-      ${l.sleepHours ?? "NULL"},
-      ${l.sleepQuality ?? "NULL"},
-      ${l.energyMorning ?? "NULL"},
-      ${l.energyAfternoon ?? "NULL"},
-      ${l.energyEvening ?? "NULL"},
-      ${l.studyFocusScore ?? "NULL"},
-      ${l.studyFocusMinutes ?? "NULL"},
-      ${l.reactionTimeMs ?? "NULL"},
-      ${l.totalExerciseMin ?? "NULL"},
-      ${l.overallRPE ?? "NULL"},
-      ${l.exerciseNotes ? `'${l.exerciseNotes.replace(/'/g, "''")}'` : "NULL"},
-      ${l.stroopAccuracy ?? "NULL"},
-      ${l.stroopAvgMs ?? "NULL"},
-      ${l.balanceSec ?? "NULL"},
-      '${new Date(l.createdAt).toISOString()}',
-      '${new Date(l.updatedAt).toISOString()}'
+      '${l.id}', '${l.userId}', ${dateStr(l.date)},
+      ${strOrNull(l.dayOfWeek)}, ${strOrNull(l.routine)},
+      ${strOrNull(l.bedTime)}, ${strOrNull(l.wakeTime)},
+      ${l.sleepHours ?? "NULL"}, ${l.sleepQuality ?? "NULL"},
+      ${l.energyMorning ?? "NULL"}, ${l.energyAfternoon ?? "NULL"}, ${l.energyEvening ?? "NULL"},
+      ${l.studyFocusScore ?? "NULL"}, ${l.studyFocusMinutes ?? "NULL"},
+      ${l.reactionTimeMs ?? "NULL"}, ${l.totalExerciseMin ?? "NULL"},
+      ${l.overallRPE ?? "NULL"}, ${strOrNull(l.exerciseNotes)},
+      ${colOrNull(dlCols, "stroopAccuracy", l.stroopAccuracy)},
+      ${colOrNull(dlCols, "stroopAvgMs", l.stroopAvgMs)},
+      ${colOrNull(dlCols, "balanceSec", l.balanceSec)},
+      ${dateStr(l.createdAt)}, ${dateStr(l.updatedAt)}
     ) ON CONFLICT (id) DO NOTHING
   `);
 }
-console.log(`  → ${dailyLogs.length}건 처리 (new migrated: ${migrated - m}, skipped: ${skipped - s})`);
+console.log(`  ${dailyLogs.length}건 처리`);
 
-// ── ExerciseLogs ──────────────────────────────────────────────────────────────
-m = migrated; s = skipped;
-console.log("💪 ExerciseLogs 마이그레이션...");
-const exerciseLogs = db.prepare("SELECT * FROM ExerciseLog").all();
+// ── ExerciseLogs ────────────────────────────────────────────────
+console.log("💪 ExerciseLogs...");
+const exerciseLogs = db.prepare('SELECT * FROM "ExerciseLog"').all();
 for (const e of exerciseLogs) {
   await tryInsert(`ExerciseLog ${e.id}`, `
     INSERT INTO "ExerciseLog" (id, "dailyLogId", name, region, "durationMin", "setsReps", rpe, completed, pain, notes)
-    VALUES (
-      '${e.id}', '${e.dailyLogId}',
-      '${e.name.replace(/'/g, "''")}', '${e.region}',
-      ${e.durationMin ?? "NULL"},
-      ${e.setsReps ? `'${e.setsReps.replace(/'/g, "''")}'` : "NULL"},
-      ${e.rpe ?? "NULL"},
-      ${e.completed ? "true" : "false"},
-      ${e.pain ? "true" : "false"},
-      ${e.notes ? `'${e.notes.replace(/'/g, "''")}'` : "NULL"}
-    ) ON CONFLICT (id) DO NOTHING
+    VALUES ('${e.id}', '${e.dailyLogId}', ${strOrNull(e.name)}, ${strOrNull(e.region)},
+      ${e.durationMin ?? "NULL"}, ${strOrNull(e.setsReps)}, ${e.rpe ?? "NULL"},
+      ${e.completed ? "true" : "false"}, ${e.pain ? "true" : "false"}, ${strOrNull(e.notes)})
+    ON CONFLICT (id) DO NOTHING
   `);
 }
-console.log(`  → ${exerciseLogs.length}건 처리 (new migrated: ${migrated - m}, skipped: ${skipped - s})`);
+console.log(`  ${exerciseLogs.length}건 처리`);
 
-// ── MealLogs ──────────────────────────────────────────────────────────────────
-m = migrated; s = skipped;
-console.log("🍽  MealLogs 마이그레이션...");
-const mealLogs = db.prepare("SELECT * FROM MealLog").all();
-for (const ml of mealLogs) {
-  await tryInsert(`MealLog ${ml.id}`, `
+// ── MealLogs ────────────────────────────────────────────────────
+console.log("🍽  MealLogs...");
+const mealLogs = db.prepare('SELECT * FROM "MealLog"').all();
+for (const m of mealLogs) {
+  await tryInsert(`MealLog ${m.id}`, `
     INSERT INTO "MealLog" (id, "dailyLogId", "mealType", time, items, notes)
-    VALUES (
-      '${ml.id}', '${ml.dailyLogId}',
-      '${ml.mealType.replace(/'/g, "''")}',
-      ${ml.time ? `'${ml.time}'` : "NULL"},
-      '${ml.items.replace(/'/g, "''")}',
-      ${ml.notes ? `'${ml.notes.replace(/'/g, "''")}'` : "NULL"}
-    ) ON CONFLICT (id) DO NOTHING
+    VALUES ('${m.id}', '${m.dailyLogId}', ${strOrNull(m.mealType)},
+      ${strOrNull(m.time)}, ${strOrNull(m.items)}, ${strOrNull(m.notes)})
+    ON CONFLICT (id) DO NOTHING
   `);
 }
-console.log(`  → ${mealLogs.length}건 처리 (new migrated: ${migrated - m}, skipped: ${skipped - s})`);
+console.log(`  ${mealLogs.length}건 처리`);
 
-// ── KnowledgeCards ─────────────────────────────────────────────────────────
-m = migrated; s = skipped;
-console.log("📚 KnowledgeCards 마이그레이션...");
-const cards = db.prepare("SELECT * FROM KnowledgeCard").all();
-for (const c of cards) {
-  await tryInsert(`KnowledgeCard ${c.id}`, `
-    INSERT INTO "KnowledgeCard" (id, "authorId", title, summary, body, category, "createdAt", "updatedAt")
-    VALUES (
-      '${c.id}', '${c.authorId}',
-      '${c.title.replace(/'/g, "''")}',
-      '${c.summary.replace(/'/g, "''")}',
-      '${c.body.replace(/'/g, "''")}',
-      '${c.category}',
-      '${new Date(c.createdAt).toISOString()}',
-      '${new Date(c.updatedAt).toISOString()}'
-    ) ON CONFLICT (id) DO NOTHING
-  `);
+// ── KnowledgeCards ──────────────────────────────────────────────
+console.log("📚 KnowledgeCards...");
+let cardCount = 0;
+try {
+  const cards = db.prepare('SELECT * FROM "KnowledgeCard"').all();
+  for (const c of cards) {
+    await tryInsert(`KnowledgeCard ${c.id}`, `
+      INSERT INTO "KnowledgeCard" (id, "authorId", title, summary, body, category, "createdAt", "updatedAt")
+      VALUES ('${c.id}', '${c.authorId}', ${strOrNull(c.title)}, ${strOrNull(c.summary)},
+        ${strOrNull(c.body)}, ${strOrNull(c.category)}, ${dateStr(c.createdAt)}, ${dateStr(c.updatedAt)})
+      ON CONFLICT (id) DO NOTHING
+    `);
+    cardCount++;
+  }
+} catch (e) {
+  console.warn("  KnowledgeCard 테이블 없음 또는 에러:", e.message?.slice(0, 80));
 }
-console.log(`  → ${cards.length}건 처리 (new migrated: ${migrated - m}, skipped: ${skipped - s})`);
+console.log(`  ${cardCount}건 처리`);
 
 db.close();
-console.log(`\n✅ 마이그레이션 완료! 총 migrated: ${migrated}, skipped(이미 있음/에러): ${skipped}`);
+console.log(`\n✅ 완료! 성공: ${migrated}건, 건너뜀(중복/에러): ${skipped}건`);

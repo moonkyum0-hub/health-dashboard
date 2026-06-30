@@ -55,7 +55,7 @@ export default async function Home() {
       </section>
 
       <FeatureSection
-        eyebrow="01 — RECORD"
+        eyebrow="01 — TRACKING"
         title="기록"
         description="기상, 운동, 식단, 수면, 학습 집중도까지 매일의 컨디션을 빠짐없이 남깁니다."
       >
@@ -63,7 +63,7 @@ export default async function Home() {
       </FeatureSection>
 
       <FeatureSection
-        eyebrow="02 — CHOOSE"
+        eyebrow="02 — CHOOSING"
         title="선택"
         description="운동 카탈로그에서 설명과 효과를 확인하고, 나만의 루틴을 직접 구성하세요. 정해진 루틴을 따르기보다, 내가 고르고 조정합니다."
         reverse
@@ -72,7 +72,7 @@ export default async function Home() {
       </FeatureSection>
 
       <FeatureSection
-        eyebrow="03 — IMPROVE"
+        eyebrow="03 — IMPROVING"
         title="개선"
         description="쌓인 기록을 분석해 부족한 부분을 짚어주고, 그에 맞는 운동과 생활·식습관 개선안을 추천합니다."
       >
