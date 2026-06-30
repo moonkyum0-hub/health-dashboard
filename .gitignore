@@ -50,3 +50,6 @@ next-env.d.ts
 _tmp_*.mjs
 
 /src/generated/prisma
+
+.vercel
+.env*
