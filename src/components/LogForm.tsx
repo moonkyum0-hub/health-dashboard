@@ -399,12 +399,12 @@ export default function LogForm({
           <div className="space-y-3">
             {exercises.map((ex, idx) => (
               <div key={idx} className="rounded-xl border border-slate-200 p-3">
-                <div className="grid gap-3 sm:grid-cols-7">
+                <div className="grid gap-3 md:grid-cols-7">
                   <Input
                     placeholder="운동명"
                     value={ex.name}
                     onChange={(e) => updateExercise(idx, { name: e.target.value })}
-                    className="sm:col-span-2"
+                    className="md:col-span-2"
                   />
                   <Select
                     value={ex.category}
