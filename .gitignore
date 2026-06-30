@@ -46,4 +46,7 @@ next-env.d.ts
 *.db-wal
 *.db-shm
 
+# scratch test scripts
+_tmp_*.mjs
+
 /src/generated/prisma
