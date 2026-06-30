@@ -268,7 +268,7 @@ export default function RoutineBuilder({
           </CardHeader>
           <CardContent>
             {items.length === 0 ? (
-              <p className="text-sm text-slate-400">왼쪽에서 운동을 선택해 추가하세요.</p>
+              <p className="text-sm text-slate-400">운동 카탈로그에서 운동을 선택해 추가하세요.</p>
             ) : (
               <ul className="space-y-2">
                 {items.map((item, idx) => (

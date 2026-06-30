@@ -3,6 +3,7 @@ import { auth, signOut } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import LogoMark from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import MobileMenu from "@/components/MobileMenu";
 
 const LINKS = [
   { href: "/log/new", label: "새 기록" },
@@ -32,29 +33,36 @@ export default async function NavBar() {
         </Link>
 
         {session?.user ? (
-          <nav className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-700">
-            {LINKS.map((link) => (
-              <Link key={link.href} href={link.href} className="whitespace-nowrap hover:text-blue-600">
-                {link.label}
-              </Link>
-            ))}
-            {me?.accountType === "ADMIN" && (
-              <Link href="/admin" className="whitespace-nowrap text-blue-600 hover:text-blue-700">
-                관리자
-              </Link>
-            )}
-            <span className="max-w-[12rem] truncate text-slate-400">{session.user.email}</span>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/" });
-              }}
-            >
-              <Button type="submit" variant="outline" size="sm" className="rounded-full">
-                로그아웃
-              </Button>
-            </form>
-          </nav>
+          <>
+            <nav className="hidden min-w-0 flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-700 md:flex">
+              {LINKS.map((link) => (
+                <Link key={link.href} href={link.href} className="whitespace-nowrap hover:text-blue-600">
+                  {link.label}
+                </Link>
+              ))}
+              {me?.accountType === "ADMIN" && (
+                <Link href="/admin" className="whitespace-nowrap text-blue-600 hover:text-blue-700">
+                  관리자
+                </Link>
+              )}
+              <span className="max-w-[12rem] truncate text-slate-400">{session.user.email}</span>
+              <form
+                action={async () => {
+                  "use server";
+                  await signOut({ redirectTo: "/" });
+                }}
+              >
+                <Button type="submit" variant="outline" size="sm" className="rounded-full">
+                  로그아웃
+                </Button>
+              </form>
+            </nav>
+            <MobileMenu
+              links={LINKS}
+              isAdmin={me?.accountType === "ADMIN"}
+              userEmail={session.user.email ?? ""}
+            />
+          </>
         ) : (
           <nav className="flex shrink-0 items-center gap-2 text-sm">
             <Button variant="ghost" size="sm" render={<Link href="/login" />}>

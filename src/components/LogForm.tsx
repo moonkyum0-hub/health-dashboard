@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
   CATEGORY_LABEL,
   CATEGORY_ORDER,
@@ -388,9 +389,9 @@ export default function LogForm({
           {routines.length === 0 && (
             <p className="mb-3 text-sm text-slate-400">
               아직 만든 루틴이 없습니다. 아래에서 운동을 직접 추가하거나,{" "}
-              <a href="/routines/new" className="underline">
+              <Link href="/routines/new" className="underline">
                 루틴 만들기
-              </a>
+              </Link>
               로 이동해 미리 구성해두면 다음부터 자동으로 불러옵니다.
             </p>
           )}
@@ -398,7 +399,7 @@ export default function LogForm({
           <div className="space-y-3">
             {exercises.map((ex, idx) => (
               <div key={idx} className="rounded-xl border border-slate-200 p-3">
-                <div className="grid gap-3 sm:grid-cols-6">
+                <div className="grid gap-3 sm:grid-cols-7">
                   <Input
                     placeholder="운동명"
                     value={ex.name}
@@ -430,7 +431,7 @@ export default function LogForm({
                       updateExercise(idx, { durationMin: Number(e.target.value) })
                     }
                   />
-                  <div className="relative flex items-center">
+                  <div className="flex items-center gap-1.5">
                     <Input
                       type="number"
                       placeholder="RPE"
@@ -439,30 +440,26 @@ export default function LogForm({
                       value={ex.rpe}
                       onChange={(e) => updateExercise(idx, { rpe: e.target.value })}
                     />
-                    <span className="absolute right-2">
-                      <HintBadge text="RPE = 운동 자각도. 이 운동이 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다." />
-                    </span>
+                    <HintBadge text="RPE = 운동 자각도. 이 운동이 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다." />
                   </div>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Label className="flex items-center gap-1.5">
-                      <Checkbox
-                        checked={ex.completed}
-                        onCheckedChange={(checked) =>
-                          updateExercise(idx, { completed: checked === true })
-                        }
-                      />
-                      완수
-                    </Label>
-                    <Label className="flex items-center gap-1.5">
-                      <Checkbox
-                        checked={ex.pain}
-                        onCheckedChange={(checked) =>
-                          updateExercise(idx, { pain: checked === true })
-                        }
-                      />
-                      통증
-                    </Label>
-                  </div>
+                  <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
+                    <Checkbox
+                      checked={ex.completed}
+                      onCheckedChange={(checked) =>
+                        updateExercise(idx, { completed: checked === true })
+                      }
+                    />
+                    완수
+                  </Label>
+                  <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
+                    <Checkbox
+                      checked={ex.pain}
+                      onCheckedChange={(checked) =>
+                        updateExercise(idx, { pain: checked === true })
+                      }
+                    />
+                    통증
+                  </Label>
                 </div>
 
                 {ex.benefit && (

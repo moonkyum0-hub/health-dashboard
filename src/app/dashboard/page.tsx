@@ -221,7 +221,13 @@ export default async function DashboardPage() {
               <CardTitle>시간에 따른 변화</CardTitle>
             </CardHeader>
             <CardContent>
-              <TrendLineChart data={trendData} />
+              {logs.length < 2 ? (
+                <p className="py-10 text-center text-sm text-slate-400">
+                  기록이 2건 이상 쌓이면 변화 추이 그래프가 표시돼요.
+                </p>
+              ) : (
+                <TrendLineChart data={trendData} />
+              )}
             </CardContent>
           </Card>
 
@@ -230,7 +236,13 @@ export default async function DashboardPage() {
               <CardTitle>부위별 운동 완수율</CardTitle>
             </CardHeader>
             <CardContent>
-              <RegionBarChart data={regionData} />
+              {logs.length === 0 ? (
+                <p className="py-10 text-center text-sm text-slate-400">
+                  운동 기록을 남기면 부위별 완수율이 표시돼요.
+                </p>
+              ) : (
+                <RegionBarChart data={regionData} />
+              )}
             </CardContent>
           </Card>
 
