@@ -370,7 +370,11 @@ export default function LogForm({
                   onValueChange={(value) => handleRoutineChange(value ?? "NONE")}
                 >
                   <SelectTrigger size="sm">
-                    <SelectValue />
+                    <span className="flex flex-1 text-left text-sm">
+                      {selectedRoutineId === "NONE"
+                        ? "직접 구성"
+                        : routines.find((r) => r.id === selectedRoutineId)?.name ?? "루틴 선택"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="NONE">직접 구성</SelectItem>
