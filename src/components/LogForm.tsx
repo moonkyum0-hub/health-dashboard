@@ -12,6 +12,7 @@ import ReactionTimeTest from "@/components/ReactionTimeTest";
 import StroopTest, { type StroopResult } from "@/components/StroopTest";
 import BalanceTest from "@/components/BalanceTest";
 import DigitSpanTest from "@/components/DigitSpanTest";
+import TimeQuickPicker from "@/components/TimeQuickPicker";
 import NRSScale from "@/components/NRSScale";
 import PHQ2Screen from "@/components/PHQ2Screen";
 import ChairStandTest from "@/components/ChairStandTest";
@@ -514,18 +515,26 @@ export default function LogForm({
           {/* 수면 상세 */}
           <Card>
             <CardHeader><CardTitle>수면 상세</CardTitle></CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Field label="취침 시간">
-                  <Input type="time" value={bedTime} onChange={(e) => handleBedTimeChange(e.target.value)} />
-                </Field>
-                <Field label="기상 시간">
-                  <Input type="time" value={wakeTime} onChange={(e) => handleWakeTimeChange(e.target.value)} />
-                </Field>
-                <Field label="수면 질 (1-10)" hint="1=거의 못 잤다, 10=완전히 개운했다.">
-                  <Input type="number" min={1} max={10} value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} />
-                </Field>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="mb-2 block text-sm text-slate-500">취침 시간</Label>
+                <TimeQuickPicker
+                  value={bedTime}
+                  onChange={handleBedTimeChange}
+                  presets={[21, 22, 23, 0, 1, 2]}
+                />
               </div>
+              <div>
+                <Label className="mb-2 block text-sm text-slate-500">기상 시간</Label>
+                <TimeQuickPicker
+                  value={wakeTime}
+                  onChange={handleWakeTimeChange}
+                  presets={[5, 6, 7, 8, 9]}
+                />
+              </div>
+              <Field label="수면 질 (1-10)" hint="1=거의 못 잤다, 10=완전히 개운했다.">
+                <Input type="number" min={1} max={10} value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} />
+              </Field>
             </CardContent>
           </Card>
 
