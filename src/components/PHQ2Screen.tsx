@@ -63,12 +63,14 @@ export default function PHQ2Screen({
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white px-4 py-3">
-      <p className="mb-1 text-sm font-medium text-slate-700">기분 선별 (PHQ-2)</p>
-      <p className="mb-3 text-xs text-slate-400">지난 2주 동안 얼마나 자주 느끼셨나요?</p>
-      <div className="space-y-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-sm font-medium text-slate-700">기분 선별 (PHQ-2)</p>
+        <span className="text-[10px] text-slate-400">지난 2주간</span>
+      </div>
+      <div className="space-y-3">
         {QUESTIONS.map((q, qIdx) => (
           <div key={qIdx}>
-            <p className="mb-2 text-xs text-slate-600">{q}</p>
+            <p className="mb-2 text-sm font-medium text-slate-800">{q}</p>
             <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
               {OPTIONS.map((opt) => {
                 const selected = answers[qIdx] === opt.value;
@@ -92,11 +94,11 @@ export default function PHQ2Screen({
         ))}
       </div>
       {value !== null && status && (
-        <div className="mt-3 flex items-start gap-2">
-          <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${status.color} ${status.textColor}`}>
-            {status.label} ({value}점/6점)
+        <div className="mt-3 flex items-center gap-2">
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color} ${status.textColor}`}>
+            {status.label} ({value}/6)
           </span>
-          <p className="text-xs text-slate-500">{status.description}</p>
+          <span className="text-xs text-slate-500">{status.description}</span>
         </div>
       )}
     </div>

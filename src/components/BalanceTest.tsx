@@ -51,7 +51,7 @@ export default function BalanceTest({
           onPointerDown={start}
           className="flex h-28 w-full items-center justify-center rounded-xl bg-slate-100 text-sm font-medium text-slate-600 select-none"
         >
-          한 발로 서서 버튼을 누르고 있다가, 균형이 무너지면 손을 떼세요
+          한 발 들고 꾹 누르세요 — 균형 무너지면 손 떼기
         </button>
       )}
 

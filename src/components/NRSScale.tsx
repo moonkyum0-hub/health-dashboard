@@ -57,14 +57,8 @@ export default function NRSScale({
       </div>
 
       {value !== null && status && (
-        <p className="mt-2 text-xs text-slate-500">{status.description}</p>
+        <p className="mt-1.5 text-xs text-slate-500">{status.description}</p>
       )}
-
-      <p className="mt-2 text-[10px] text-slate-400">
-        {isPain
-          ? "NRS 통증척도 (0-10): 임상표준 측정도구. Farrar et al., PAIN (2001) 기준 2점 이상 변화 = 임상적 의미."
-          : "NRS 피로척도 (0-10): Bruera et al., J Pain Symptom Manage (1991). NCCN 가이드라인 권장."}
-      </p>
     </div>
   );
 }

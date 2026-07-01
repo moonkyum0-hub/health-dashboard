@@ -141,11 +141,6 @@ export default function ChairStandTest({
         );
       })()}
 
-      {phase === "idle" && (
-        <p className="mt-2 text-xs text-slate-400">
-          30초 동안 의자에서 일어서고 앉기 반복 — 하체 근력 기능 측정
-        </p>
-      )}
     </div>
   );
 }

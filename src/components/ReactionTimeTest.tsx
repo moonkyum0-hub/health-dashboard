@@ -127,11 +127,6 @@ export default function ReactionTimeTest({
           </div>
         );
       })()}
-      {phase === "idle" && (
-        <p className="mt-2 text-xs text-slate-400">
-          초록색으로 바뀌는 순간 탭하세요 — {ROUNDS}회 평균
-        </p>
-      )}
     </div>
   );
 }
