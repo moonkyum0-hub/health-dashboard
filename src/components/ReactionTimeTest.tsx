@@ -89,21 +89,15 @@ export default function ReactionTimeTest({
 
   return (
     <div>
-      <button
-        type="button"
-        onClick={handleTap}
-        className={`flex h-28 w-full items-center justify-center rounded-xl text-sm font-medium transition-colors select-none ${boxStyle[phase]}`}
-      >
-        {phase === "done" ? (
-          <span>
-            평균 반응속도{" "}
-            <span className="text-lg font-semibold">{value}ms</span>
-            <span className="ml-2 text-xs text-blue-500">({round}/{ROUNDS}회)</span>
-          </span>
-        ) : (
-          boxText[phase]
-        )}
-      </button>
+      {phase !== "done" && (
+        <button
+          type="button"
+          onClick={handleTap}
+          className={`flex h-28 w-full items-center justify-center rounded-xl text-sm font-medium transition-colors select-none ${boxStyle[phase]}`}
+        >
+          {boxText[phase]}
+        </button>
+      )}
       {phase !== "idle" && phase !== "done" && (
         <p className="mt-1 text-xs text-slate-400">{round}/{ROUNDS}회 진행 중</p>
       )}
@@ -111,21 +105,25 @@ export default function ReactionTimeTest({
         const status = getReactionTimeStatus(value);
         const trend = personalAvg ? calcTrend(value, personalAvg, false) : null;
         return (
-          <div className="mt-2 space-y-1">
+          <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-blue-700">평균 반응속도 {value}ms</span>
+              <button type="button" onClick={reset} className="text-xs text-blue-400 underline">
+                다시 측정
+              </button>
+            </div>
             <div className="flex items-center gap-2">
               <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color} ${status.textColor}`}>
                 {status.label}
               </span>
-              <span className="text-xs text-slate-500">{status.description}</span>
+              {trend && (
+                <span className={`text-xs font-medium ${trend.improved ? "text-green-600" : "text-red-500"}`}>
+                  {trend.direction} 내 평균({personalAvg}ms) 대비 {trend.changePct}%{" "}
+                  {trend.improved ? "빠름" : "느림"}
+                </span>
+              )}
             </div>
-            {trend && (
-              <p className={`text-xs font-medium ${trend.improved ? "text-green-600" : "text-red-500"}`}>
-                {trend.direction} 내 평균({personalAvg}ms) 대비 {trend.changePct}% {trend.improved ? "빠름" : "느림"}
-              </p>
-            )}
-            <button type="button" onClick={reset} className="text-xs text-slate-400 underline hover:text-slate-600">
-              다시 측정
-            </button>
+            <p className="mt-1 text-xs text-slate-500">{status.description}</p>
           </div>
         );
       })()}

@@ -748,7 +748,7 @@ export default function LogForm({
                     )}
                   </div>
                 )}
-                <div className={`grid gap-4 ${gridClass}`}>
+                <div className={`grid gap-4 items-start ${gridClass}`}>
                   {tests.reaction && (
                     <div>
                       <Label className="mb-1 block text-sm font-normal text-slate-500">
