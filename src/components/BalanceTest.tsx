@@ -90,10 +90,6 @@ export default function BalanceTest({
         );
       })()}
 
-      <p className="mt-2 text-xs text-slate-400">
-        한 발 서기 균형 테스트: 눈을 뜨고 한쪽 다리를 들어올린 상태로 버튼을 누른 채 버틸 수 있는
-        시간을 측정해 신체 균형 능력을 객관적으로 평가합니다.
-      </p>
     </div>
   );
 }

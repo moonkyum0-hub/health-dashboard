@@ -32,6 +32,7 @@ export default async function NewLogPage() {
         balanceSec: true,
         digitSpan: true,
         fatigueScore: true,
+        chairStand: true,
       },
     }),
     prisma.user.findUnique({
@@ -52,6 +53,7 @@ export default async function NewLogPage() {
     balanceSec: avg(recentLogs.map((l) => l.balanceSec)),
     digitSpan: avg(recentLogs.map((l) => l.digitSpan)),
     fatigueScore: avg(recentLogs.map((l) => l.fatigueScore)),
+    chairStand: avg(recentLogs.map((l) => l.chairStand)),
   };
 
   const routinesForClient = routines.map((r) => ({

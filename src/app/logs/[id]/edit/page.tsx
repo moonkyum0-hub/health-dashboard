@@ -44,6 +44,7 @@ export default async function EditLogPage({
         balanceSec: true,
         digitSpan: true,
         fatigueScore: true,
+        chairStand: true,
       },
     }),
     prisma.user.findUnique({
@@ -66,6 +67,7 @@ export default async function EditLogPage({
     balanceSec: avg(recentLogs.map((l) => l.balanceSec)),
     digitSpan: avg(recentLogs.map((l) => l.digitSpan)),
     fatigueScore: avg(recentLogs.map((l) => l.fatigueScore)),
+    chairStand: avg(recentLogs.map((l) => l.chairStand)),
   };
 
   const routinesForClient = routines.map((r) => ({
@@ -100,6 +102,8 @@ export default async function EditLogPage({
     digitSpan: log.digitSpan ?? null,
     painScore: log.painScore ?? null,
     fatigueScore: log.fatigueScore ?? null,
+    phq2Score: log.phq2Score ?? null,
+    chairStand: log.chairStand ?? null,
     overallRPE: log.overallRPE != null ? String(log.overallRPE) : "",
     exerciseNotes: log.exerciseNotes ?? "",
     exercises: log.exercises.map((ex) => ({

@@ -72,6 +72,27 @@ export function getFatigueStatus(score: number): ScoreStatus {
   return   { level: "low",    label: "심한 피로",   color: "bg-red-100",    textColor: "text-red-700",    description: "피로도가 높아요. 오늘은 강도 낮은 회복 운동과 충분한 수면을 우선하세요." };
 }
 
+// PHQ-2 — Löwe et al. (2005) Medical Care 43(11). Cutoff ≥3: sensitivity 83%, specificity 92%
+// Korean validation: Choi et al. (2007) J Korean Med Sci
+export function getPHQ2Status(score: number): ScoreStatus {
+  if (score <= 2)
+    return { level: "good",   label: "양호",      color: "bg-green-100",  textColor: "text-green-700",  description: "우울 선별에서 위험 신호가 낮아요." };
+  if (score <= 4)
+    return { level: "normal", label: "주의",      color: "bg-yellow-100", textColor: "text-yellow-700", description: "가벼운 우울 증상이 있을 수 있어요. 기분과 수면 패턴을 계속 기록해보세요." };
+  return   { level: "low",    label: "상담 권장", color: "bg-red-100",    textColor: "text-red-700",    description: "우울 가능성이 있는 점수예요. 지속되면 전문가 상담을 권장해요." };
+}
+
+// 30-Second Chair Stand Test — Rikli & Jones (1999, 2013) J Aging & Physical Activity
+// Norms for 60-64yr: Women 12-17, Men 14-19. For younger adults, adjusted upward.
+// Functional threshold: <10 warrants clinical attention regardless of age
+export function getChairStandStatus(count: number): ScoreStatus {
+  if (count >= 15)
+    return { level: "good",   label: "양호",  color: "bg-green-100",  textColor: "text-green-700",  description: "하체 근력과 기능적 이동능력이 좋은 상태예요." };
+  if (count >= 10)
+    return { level: "normal", label: "보통",  color: "bg-yellow-100", textColor: "text-yellow-700", description: "평균적인 하체 기능 수준이에요. 규칙적인 하체 운동이 도움돼요." };
+  return   { level: "low",    label: "저하",  color: "bg-red-100",    textColor: "text-red-700",    description: "하체 근력이 낮은 편이에요. 낙상 위험이 있을 수 있어요. 전문가와 상담하세요." };
+}
+
 /** 개인 평균 대비 변화율 */
 export function calcTrend(current: number, personalAvg: number, higherIsBetter: boolean) {
   if (personalAvg === 0) return null;

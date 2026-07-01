@@ -175,10 +175,6 @@ export default function StroopTest({
         );
       })()}
 
-      <p className="mt-2 text-xs text-slate-400">
-        스트룹 테스트(Stroop Test): 글자의 뜻과 색깔이 다를 때 색깔만 빠르게 골라내는 능력을 측정해
-        주의력·실행기능(전두엽 기능)을 객관적으로 평가합니다.
-      </p>
     </div>
   );
 }

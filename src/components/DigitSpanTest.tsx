@@ -3,16 +3,18 @@
 import { useEffect, useRef, useState } from "react";
 import { getDigitSpanStatus, calcTrend } from "@/lib/scoreStatus";
 
-// Pre-generated digit sequences per length, 2 trials each
-// Digits are varied to avoid repetition patterns (per WAIS administration guidelines)
-const SEQUENCES: Record<number, number[][]> = {
-  4: [[3, 1, 7, 2], [6, 4, 8, 1]],
-  5: [[7, 2, 9, 4, 1], [3, 8, 5, 1, 7]],
-  6: [[4, 7, 1, 9, 5, 2], [2, 6, 8, 3, 7, 4]],
-  7: [[5, 3, 8, 2, 7, 4, 9], [1, 6, 4, 9, 2, 8, 5]],
-  8: [[8, 3, 5, 1, 7, 4, 9, 2], [4, 9, 2, 7, 5, 1, 8, 3]],
-  9: [[6, 1, 8, 4, 2, 9, 5, 3, 7], [2, 7, 4, 8, 6, 3, 1, 9, 5]],
-};
+// Generate a random digit sequence of given length,
+// avoiding immediate repetition of the same digit (WAIS administration standard)
+function randomSeq(length: number): number[] {
+  const seq: number[] = [];
+  for (let i = 0; i < length; i++) {
+    let d: number;
+    do { d = Math.floor(Math.random() * 10); }
+    while (seq.length > 0 && d === seq[seq.length - 1]);
+    seq.push(d);
+  }
+  return seq;
+}
 
 const MIN_LENGTH = 4;
 const MAX_LENGTH = 9;
@@ -47,8 +49,8 @@ export default function DigitSpanTest({
     beginCountdown(MIN_LENGTH, 0);
   }
 
-  function beginCountdown(length: number, trial: number) {
-    setCurrentSeq(SEQUENCES[length][trial]);
+  function beginCountdown(length: number, _trial: number) {
+    setCurrentSeq(randomSeq(length));
     setCountdown(3);
     setPhase("countdown");
   }
@@ -214,10 +216,6 @@ export default function DigitSpanTest({
         );
       })()}
 
-      <p className="mt-2 text-xs text-slate-400">
-        숫자 기억 검사: 작업기억(단기기억) 측정. WAIS 지능검사 핵심 하위검사 (Wechsler, 1939).
-        성인 정상 범위 6-7자리 (Miller, 1956).
-      </p>
     </div>
   );
 }

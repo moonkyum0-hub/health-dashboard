@@ -13,6 +13,8 @@ import StroopTest, { type StroopResult } from "@/components/StroopTest";
 import BalanceTest from "@/components/BalanceTest";
 import DigitSpanTest from "@/components/DigitSpanTest";
 import NRSScale from "@/components/NRSScale";
+import PHQ2Screen from "@/components/PHQ2Screen";
+import ChairStandTest from "@/components/ChairStandTest";
 import { createDailyLog } from "@/app/log/new/actions";
 import { updateDailyLog } from "@/app/logs/[id]/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,19 +129,22 @@ interface InitialData {
   digitSpan: number | null;
   painScore: number | null;
   fatigueScore: number | null;
+  phq2Score: number | null;
+  chairStand: number | null;
   overallRPE: string;
   exerciseNotes: string;
+
   exercises: ExerciseRow[];
   meals: MealRow[];
 }
 
 function getTests(role: UserRole) {
   switch (role) {
-    case "STUDENT":  return { reaction: true,  digitSpan: true,  stroop: true,  balance: false, fatigue: false, pain: false };
-    case "WORKER":   return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
-    case "ATHLETE":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
-    case "PATIENT":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: true  };
-    default:         return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
+    case "STUDENT":  return { reaction: true,  digitSpan: true,  stroop: true,  balance: false, fatigue: false, pain: false, phq2: false, chairStand: false };
+    case "WORKER":   return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false, phq2: true,  chairStand: false };
+    case "ATHLETE":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false, phq2: false, chairStand: false };
+    case "PATIENT":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: true,  phq2: true,  chairStand: true  };
+    default:         return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false, phq2: false, chairStand: false };
   }
 }
 
@@ -159,6 +164,7 @@ export default function LogForm({
     balanceSec: number | null;
     digitSpan: number | null;
     fatigueScore: number | null;
+    chairStand: number | null;
   };
   userRole?: UserRole;
   initialData?: InitialData;
@@ -206,6 +212,8 @@ export default function LogForm({
   const [digitSpan, setDigitSpan] = useState<number | null>(initialData?.digitSpan ?? null);
   const [painScore, setPainScore] = useState<number | null>(initialData?.painScore ?? null);
   const [fatigueScore, setFatigueScore] = useState<number | null>(initialData?.fatigueScore ?? null);
+  const [phq2Score, setPhq2Score] = useState<number | null>(initialData?.phq2Score ?? null);
+  const [chairStand, setChairStand] = useState<number | null>(initialData?.chairStand ?? null);
   const [overallRPE, setOverallRPE] = useState(initialData?.overallRPE ?? "");
   const [exerciseNotes, setExerciseNotes] = useState(initialData?.exerciseNotes ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -333,6 +341,8 @@ export default function LogForm({
       digitSpan: digitSpan ?? undefined,
       painScore: painScore ?? undefined,
       fatigueScore: fatigueScore ?? undefined,
+      phq2Score: phq2Score ?? undefined,
+      chairStand: chairStand ?? undefined,
       overallRPE: overallRPE || undefined,
       totalExerciseMin,
       exerciseNotes,
@@ -778,8 +788,8 @@ export default function LogForm({
 
           {(() => {
             const tests = getTests(userRole ?? null);
-            const gridCount = [tests.reaction, tests.digitSpan, tests.stroop, tests.balance].filter(Boolean).length;
-            const gridClass = gridCount >= 3 ? "sm:grid-cols-3" : gridCount === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
+            const gridItems = [tests.reaction, tests.digitSpan, tests.stroop, tests.balance, tests.chairStand].filter(Boolean).length;
+            const gridClass = gridItems >= 3 ? "sm:grid-cols-3" : gridItems === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
             return (
               <div className="mt-4 space-y-3">
                 {(tests.pain || tests.fatigue) && (
@@ -792,37 +802,53 @@ export default function LogForm({
                     )}
                   </div>
                 )}
+                {tests.phq2 && (
+                  <PHQ2Screen value={phq2Score} onChange={setPhq2Score} />
+                )}
                 <div className={`grid gap-4 items-start ${gridClass}`}>
                   {tests.reaction && (
                     <div>
-                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                         반응속도 — 각성도
+                        <HintBadge text="5회 평균 단순반응시간. 성인 평균 250-270ms. Deary et al., Lancet (2001). 수면·피로에 민감." />
                       </Label>
                       <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
                     </div>
                   )}
                   {tests.digitSpan && (
                     <div>
-                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                         숫자 기억 — 작업기억
+                        <HintBadge text="순서대로 나타나는 숫자 기억 범위. 성인 정상 6-7자리. WAIS 핵심 하위검사 (Wechsler 1939; Miller 1956)." />
                       </Label>
                       <DigitSpanTest value={digitSpan} onChange={setDigitSpan} personalAvg={personalAvgs?.digitSpan} />
                     </div>
                   )}
                   {tests.stroop && (
                     <div>
-                      <Label className="mb-1 block text-sm font-normal text-slate-500">
-                        스트룹 — 주의력·실행기능
+                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                        스트룹 — 실행기능
+                        <HintBadge text="글자 색깔 vs 뜻 간섭 저항력. 전두엽 실행기능 측정. Stroop (1935); Golden (1978) 표준화." />
                       </Label>
                       <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
                     </div>
                   )}
                   {tests.balance && (
                     <div>
-                      <Label className="mb-1 block text-sm font-normal text-slate-500">
-                        한 발 서기 — 균형·낙상위험
+                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                        한 발 서기 — 균형
+                        <HintBadge text="눈 뜬 한발 서기. 성인 정상 25초 이상. 10초 미만은 낙상 고위험. Bohannon et al., Physical Therapy (1984)." />
                       </Label>
                       <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
+                    </div>
+                  )}
+                  {tests.chairStand && (
+                    <div>
+                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                        의자 일어서기 — 하체 근력
+                        <HintBadge text="30초 의자 서기 횟수. 하체 근력·기능 이동성 측정. Rikli & Jones (1999) JAPA 표준 검사." />
+                      </Label>
+                      <ChairStandTest value={chairStand} onChange={setChairStand} personalAvg={personalAvgs?.chairStand} />
                     </div>
                   )}
                 </div>

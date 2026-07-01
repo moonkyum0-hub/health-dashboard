@@ -140,6 +140,8 @@ model DailyLog {
   digitSpan         Int?
   painScore         Int?
   fatigueScore      Int?
+  phq2Score         Int?
+  chairStand        Int?
 
   totalExerciseMin Int?
   overallRPE       Int?

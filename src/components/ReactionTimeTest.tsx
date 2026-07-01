@@ -127,9 +127,9 @@ export default function ReactionTimeTest({
           </div>
         );
       })()}
-      {phase !== "done" && (
+      {phase === "idle" && (
         <p className="mt-2 text-xs text-slate-400">
-          색이 초록색으로 바뀌는 순간 최대한 빠르게 탭하세요. {ROUNDS}회 평균을 기록합니다.
+          초록색으로 바뀌는 순간 탭하세요 — {ROUNDS}회 평균
         </p>
       )}
     </div>
