@@ -170,6 +170,9 @@ export default function LogForm({
   initialData?: InitialData;
 }) {
   const isEditMode = !!initialData?.id;
+  const [showDetails, setShowDetails] = useState(isEditMode);
+  // Quick energy: single 1-10 score shown in compact mode
+  const [quickEnergy, setQuickEnergy] = useState(initialData?.energyMorning ?? "");
   const today = useMemo(() => new Date(), []);
   const [date, setDate] = useState(initialData?.date ?? toDateInputValue(today));
 
@@ -329,9 +332,9 @@ export default function LogForm({
       wakeTime,
       sleepHours: sleepHours || undefined,
       sleepQuality: sleepQuality || undefined,
-      energyMorning: energyMorning || undefined,
-      energyAfternoon: energyAfternoon || undefined,
-      energyEvening: energyEvening || undefined,
+      energyMorning: showDetails ? (energyMorning || undefined) : (quickEnergy || undefined),
+      energyAfternoon: showDetails ? (energyAfternoon || undefined) : undefined,
+      energyEvening: showDetails ? (energyEvening || undefined) : undefined,
       studyFocusScore: studyFocusScore || undefined,
       studyFocusMinutes: studyFocusMinutes || undefined,
       reactionTimeMs: reactionTimeMs ?? undefined,
@@ -388,13 +391,12 @@ export default function LogForm({
   }
 
   return (
-    <form action={handleSubmit} className="space-y-6">
+    <form action={handleSubmit} className="space-y-4">
+
+      {/* ── 빠른 기록 (항상 표시) ── */}
       <Card>
-        <CardHeader>
-          <CardTitle>기본 정보</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <CardContent className="pt-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <Field label="날짜">
               <Input
                 type="date"
@@ -404,459 +406,320 @@ export default function LogForm({
                 className={isEditMode ? "bg-slate-50 text-slate-400 cursor-default" : ""}
               />
             </Field>
-            <Field label="취침 시간">
-              <Input
-                type="time"
-                value={bedTime}
-                onChange={(e) => handleBedTimeChange(e.target.value)}
-              />
-            </Field>
-            <Field label="기상 시간">
-              <Input
-                type="time"
-                value={wakeTime}
-                onChange={(e) => handleWakeTimeChange(e.target.value)}
-              />
-            </Field>
-            <Field label="수면 시간(h, 자동계산)">
+            <Field label="수면 시간(h)">
               <Input
                 type="number"
-                step="0.1"
+                step="0.5"
+                min={0}
+                max={24}
                 value={sleepHours}
                 onChange={(e) => handleSleepHoursChange(e.target.value)}
-                placeholder="취침/기상 시간 입력 시 자동 계산"
-              />
-            </Field>
-            <Field
-              label="수면 질 (1-10)"
-              hint="얼마나 푹 잤는지에 대한 주관적인 느낌이에요. 1=거의 못 잤다, 5=그저 그랬다, 10=정말 개운하게 잤다 기준으로 적어주세요."
-            >
-              <Input
-                type="number"
-                min={1}
-                max={10}
-                value={sleepQuality}
-                onChange={(e) => setSleepQuality(e.target.value)}
+                placeholder="0"
               />
             </Field>
           </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <CardTitle>운동</CardTitle>
-            {routines.length > 0 && (
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <span className="shrink-0">불러올 루틴</span>
-                <Select
-                  value={selectedRoutineId}
-                  onValueChange={(value) => handleRoutineChange(value ?? "NONE")}
-                >
-                  <SelectTrigger size="sm">
-                    <span className="flex flex-1 text-left text-sm">
-                      {selectedRoutineId === "NONE"
-                        ? "직접 구성"
-                        : routines.find((r) => r.id === selectedRoutineId)?.name ?? "루틴 선택"}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="NONE">직접 구성</SelectItem>
-                    {routines.map((r) => (
-                      <SelectItem key={r.id} value={r.id}>
-                        {r.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
-          {routines.length === 0 && (
-            <p className="mb-3 text-sm text-slate-400">
-              아직 만든 루틴이 없습니다. 아래에서 운동을 직접 추가하거나,{" "}
-              <Link href="/routines/new" className="underline">
-                루틴 만들기
-              </Link>
-              로 이동해 미리 구성해두면 다음부터 자동으로 불러옵니다.
-            </p>
-          )}
-
-          <div className="space-y-3">
-            {exercises.map((ex, idx) => (
-              <div key={idx} className="rounded-xl border border-slate-200 p-3">
-                <div className="grid gap-3 md:grid-cols-7">
-                  <Input
-                    placeholder="운동명"
-                    value={ex.name}
-                    onChange={(e) => updateExercise(idx, { name: e.target.value })}
-                    className="md:col-span-2"
-                  />
-                  <Select
-                    value={ex.category}
-                    onValueChange={(value) =>
-                      value && updateExercise(idx, { category: value as ExerciseCategory })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CATEGORY_ORDER.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {CATEGORY_LABEL[c]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    type="number"
-                    placeholder="분"
-                    value={ex.durationMin || ""}
-                    onChange={(e) =>
-                      updateExercise(idx, { durationMin: Number(e.target.value) })
-                    }
-                  />
-                  <div className="flex items-center gap-1.5">
-                    <Input
-                      type="number"
-                      placeholder="RPE"
-                      min={0}
-                      max={10}
-                      value={ex.rpe}
-                      onChange={(e) => updateExercise(idx, { rpe: e.target.value })}
-                    />
-                    <HintBadge text="RPE = 운동 자각도. 이 운동이 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다." />
-                  </div>
-                  <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
-                    <Checkbox
-                      checked={ex.completed}
-                      onCheckedChange={(checked) =>
-                        updateExercise(idx, { completed: checked === true })
-                      }
-                    />
-                    완수
-                  </Label>
-                  <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
-                    <Checkbox
-                      checked={ex.pain}
-                      onCheckedChange={(checked) =>
-                        updateExercise(idx, { pain: checked === true })
-                      }
-                    />
-                    통증
-                  </Label>
-                </div>
-
-                {ex.benefit && (
-                  <p className="mt-2 text-xs text-slate-400 break-words">{ex.benefit}</p>
-                )}
-
-                <div className="mt-2 flex gap-2">
-                  <Input
-                    placeholder="관찰/특이사항 메모"
-                    value={ex.notes}
-                    onChange={(e) => updateExercise(idx, { notes: e.target.value })}
-                    className="flex-1 text-sm"
-                  />
-                  <Button
+          {/* 오늘 컨디션 — 빠른 1-10 선택 */}
+          <div className="mt-4">
+            <span className="text-sm text-slate-500">오늘 컨디션</span>
+            <div className="mt-1.5 flex gap-1">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+                const sel = quickEnergy === String(n);
+                const color = n <= 3 ? (sel ? "bg-red-400 text-white" : "bg-red-50 text-red-400")
+                  : n <= 6 ? (sel ? "bg-yellow-400 text-white" : "bg-yellow-50 text-yellow-500")
+                  : (sel ? "bg-green-500 text-white" : "bg-green-50 text-green-600");
+                return (
+                  <button
+                    key={n}
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeExercise(idx)}
-                    className="shrink-0 text-slate-500"
+                    onClick={() => setQuickEnergy(String(n))}
+                    className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${color}`}
                   >
-                    삭제
-                  </Button>
-                </div>
-              </div>
-            ))}
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-1 flex justify-between text-[10px] text-slate-400">
+              <span>매우 나쁨</span><span>매우 좋음</span>
+            </div>
           </div>
 
-          <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <p className="mb-2 text-sm font-medium text-slate-600">카탈로그에서 운동 찾기</p>
-            <div className="mb-2 flex flex-wrap gap-2">
-              <Input
-                value={catalogSearch}
-                onChange={(e) => setCatalogSearch(e.target.value)}
-                placeholder="운동 검색"
-                className="flex-1 text-sm"
-              />
+          {/* 루틴 선택 */}
+          <div className="mt-4">
+            <span className="text-sm text-slate-500">오늘 운동</span>
+            <div className="mt-1.5">
               <Select
-                value={catalogFilter}
-                onValueChange={(value) =>
-                  value && setCatalogFilter(value as ExerciseCategory | "ALL")
-                }
+                value={selectedRoutineId}
+                onValueChange={(value) => handleRoutineChange(value ?? "NONE")}
               >
-                <SelectTrigger size="sm">
-                  <SelectValue />
+                <SelectTrigger>
+                  <span className="flex flex-1 text-left text-sm">
+                    {selectedRoutineId === "NONE"
+                      ? "운동 없음 / 직접 추가"
+                      : routines.find((r) => r.id === selectedRoutineId)?.name ?? "루틴 선택"}
+                  </span>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">전체</SelectItem>
-                  {CATEGORY_ORDER.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {CATEGORY_LABEL[c]}
-                    </SelectItem>
+                  <SelectItem value="NONE">운동 없음 / 직접 추가</SelectItem>
+                  {routines.map((r) => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="max-h-40 space-y-1 overflow-y-auto">
-              {filteredCatalog.map((ex) => (
-                <button
-                  key={ex.id}
-                  type="button"
-                  onClick={() => addFromCatalog(ex)}
-                  className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-white"
-                >
-                  <CategoryIcon category={ex.category} className="h-4 w-4 shrink-0 text-slate-300" />
-                  <span className="min-w-0 flex-1 truncate">{ex.name}</span>
-                  <span className="shrink-0 text-slate-300">+</span>
-                </button>
-              ))}
-              {filteredCatalog.length === 0 && (
-                <p className="px-2 py-1.5 text-sm text-slate-400">검색 결과가 없습니다.</p>
+              {routines.length === 0 && (
+                <p className="mt-1.5 text-xs text-slate-400">
+                  <Link href="/routines/new" className="underline">루틴 만들기</Link>로 이동해 미리 구성해두면 자동으로 불러와요.
+                </p>
               )}
             </div>
-          </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addCustomExercise}
-            className="mt-3 border-dashed text-slate-600"
-          >
-            + 직접 입력해서 추가
-          </Button>
-
-          <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Field label="총 운동 시간(분, 자동계산)">
-              <div className="rounded-lg bg-slate-50 px-2 py-1.5 text-sm">
-                {totalExerciseMin}
-              </div>
-            </Field>
-            <Field
-              label="전체 RPE (1-10)"
-              hint="RPE = 운동 자각도. 오늘 운동 전체가 체감상 얼마나 힘들었는지를 1~10으로 표현해요. 1=숨도 안 찼다, 5=약간 힘들다, 10=더 이상 못할 정도로 힘들다."
-            >
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={overallRPE}
-                onChange={(e) => setOverallRPE(e.target.value)}
-              />
-            </Field>
-          </div>
-          <Field label="운동 종합 메모" className="mt-3">
-            <Textarea
-              value={exerciseNotes}
-              onChange={(e) => setExerciseNotes(e.target.value)}
-              rows={2}
-            />
-          </Field>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>식단</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {meals.map((meal, idx) => (
-              <div key={idx} className="grid gap-2 sm:grid-cols-5">
-                <Input
-                  placeholder="구분(아침식사 등)"
-                  value={meal.mealType}
-                  onChange={(e) => updateMeal(idx, { mealType: e.target.value })}
-                />
-                <Input
-                  type="time"
-                  value={meal.time}
-                  onChange={(e) => updateMeal(idx, { time: e.target.value })}
-                />
-                <Input
-                  placeholder="섭취 항목 (예: 바나나, 요거트)"
-                  value={meal.items}
-                  onChange={(e) => updateMeal(idx, { items: e.target.value })}
-                  className="sm:col-span-2"
-                />
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="메모"
-                    value={meal.notes}
-                    onChange={(e) => updateMeal(idx, { notes: e.target.value })}
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeMeal(idx)}
-                    className="shrink-0 text-slate-500"
+            {/* 간단 운동 체크리스트 */}
+            {exercises.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                {exercises.map((ex, idx) => (
+                  <label
+                    key={idx}
+                    className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 cursor-pointer hover:bg-slate-100"
                   >
-                    삭제
-                  </Button>
-                </div>
+                    <Checkbox
+                      checked={ex.completed}
+                      onCheckedChange={(checked) => updateExercise(idx, { completed: checked === true })}
+                    />
+                    <span className="flex-1 text-sm font-medium text-slate-700">{ex.name || "운동명 미입력"}</span>
+                    {ex.durationMin > 0 && (
+                      <span className="text-xs text-slate-400">{ex.durationMin}분</span>
+                    )}
+                  </label>
+                ))}
               </div>
-            ))}
+            )}
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={addMeal}
-            className="mt-3 border-dashed text-slate-600"
-          >
-            + 식사 추가
-          </Button>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>에너지 &amp; 객관적 상태 측정</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
-            <Field
-              label="오전 에너지(1-10)"
-              hint="아침 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
-            >
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={energyMorning}
-                onChange={(e) => setEnergyMorning(e.target.value)}
-              />
-            </Field>
-            <Field
-              label="오후 에너지(1-10)"
-              hint="점심 이후 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
-            >
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={energyAfternoon}
-                onChange={(e) => setEnergyAfternoon(e.target.value)}
-              />
-            </Field>
-            <Field
-              label="저녁 에너지(1-10)"
-              hint="저녁 시간대 몸 상태/활력을 1~10으로 표현해요. 1=매우 처진다, 10=매우 활기차다."
-            >
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={energyEvening}
-                onChange={(e) => setEnergyEvening(e.target.value)}
-              />
-            </Field>
-            <Field
-              label="오전 집중도(1-10)"
-              hint="공부할 때 얼마나 집중이 잘 됐는지를 1~10으로 표현해요. 1=전혀 집중 안 됨, 10=완전히 몰입함."
-            >
-              <Input
-                type="number"
-                min={0}
-                max={10}
-                value={studyFocusScore}
-                onChange={(e) => setStudyFocusScore(e.target.value)}
-              />
-            </Field>
-            <Field label="집중 지속(분)">
-              <Input
-                type="number"
-                value={studyFocusMinutes}
-                onChange={(e) => setStudyFocusMinutes(e.target.value)}
-              />
-            </Field>
-          </div>
+      {/* ── 자세히 기록하기 토글 ── */}
+      <button
+        type="button"
+        onClick={() => setShowDetails((v) => !v)}
+        className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-2.5 text-sm text-slate-500 hover:bg-slate-50"
+      >
+        {showDetails ? "▲ 간단히 보기" : "▼ 자세히 기록하기"}
+        <span className="text-xs text-slate-400">(수면 상세, 에너지 타임라인, 식단, 객관적 측정)</span>
+      </button>
 
-          <EnergyAnalysis
-            morning={energyMorning}
-            afternoon={energyAfternoon}
-            evening={energyEvening}
-            focus={studyFocusScore}
-          />
+      {/* ── 상세 섹션 ── */}
+      {showDetails && (
+        <>
+          {/* 수면 상세 */}
+          <Card>
+            <CardHeader><CardTitle>수면 상세</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Field label="취침 시간">
+                  <Input type="time" value={bedTime} onChange={(e) => handleBedTimeChange(e.target.value)} />
+                </Field>
+                <Field label="기상 시간">
+                  <Input type="time" value={wakeTime} onChange={(e) => handleWakeTimeChange(e.target.value)} />
+                </Field>
+                <Field label="수면 질 (1-10)" hint="1=거의 못 잤다, 10=완전히 개운했다.">
+                  <Input type="number" min={1} max={10} value={sleepQuality} onChange={(e) => setSleepQuality(e.target.value)} />
+                </Field>
+              </div>
+            </CardContent>
+          </Card>
 
-          {(() => {
-            const tests = getTests(userRole ?? null);
-            const gridItems = [tests.reaction, tests.digitSpan, tests.stroop, tests.balance, tests.chairStand].filter(Boolean).length;
-            const gridClass = gridItems >= 3 ? "sm:grid-cols-3" : gridItems === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
-            return (
-              <div className="mt-4 space-y-3">
-                {(tests.pain || tests.fatigue) && (
-                  <div className={`grid gap-3 ${tests.pain && tests.fatigue ? "sm:grid-cols-2" : ""}`}>
-                    {tests.pain && (
-                      <NRSScale type="pain" value={painScore} onChange={setPainScore} />
+          {/* 에너지 타임라인 + 분석 + 측정 */}
+          <Card>
+            <CardHeader><CardTitle>에너지 타임라인 &amp; 상태 측정</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <Field label="오전 에너지" hint="아침 시간대 활력. 1=매우 처짐, 10=매우 활기차다.">
+                  <Input type="number" min={0} max={10} value={energyMorning} onChange={(e) => setEnergyMorning(e.target.value)} />
+                </Field>
+                <Field label="오후 에너지" hint="점심 이후 활력.">
+                  <Input type="number" min={0} max={10} value={energyAfternoon} onChange={(e) => setEnergyAfternoon(e.target.value)} />
+                </Field>
+                <Field label="저녁 에너지" hint="저녁 시간대 활력.">
+                  <Input type="number" min={0} max={10} value={energyEvening} onChange={(e) => setEnergyEvening(e.target.value)} />
+                </Field>
+                <Field label="집중도 (1-10)" hint="공부·업무 집중도. 1=전혀 안 됨, 10=완전 몰입.">
+                  <Input type="number" min={0} max={10} value={studyFocusScore} onChange={(e) => setStudyFocusScore(e.target.value)} />
+                </Field>
+                <Field label="집중 지속(분)">
+                  <Input type="number" value={studyFocusMinutes} onChange={(e) => setStudyFocusMinutes(e.target.value)} />
+                </Field>
+              </div>
+
+              <EnergyAnalysis morning={energyMorning} afternoon={energyAfternoon} evening={energyEvening} focus={studyFocusScore} />
+
+              {/* 객관적 측정 */}
+              {(() => {
+                const tests = getTests(userRole ?? null);
+                const gridItems = [tests.reaction, tests.digitSpan, tests.stroop, tests.balance, tests.chairStand].filter(Boolean).length;
+                const gridClass = gridItems >= 3 ? "sm:grid-cols-3" : gridItems === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
+                return (
+                  <div className="mt-4 space-y-3">
+                    {(tests.pain || tests.fatigue) && (
+                      <div className={`grid gap-3 ${tests.pain && tests.fatigue ? "sm:grid-cols-2" : ""}`}>
+                        {tests.pain && <NRSScale type="pain" value={painScore} onChange={setPainScore} />}
+                        {tests.fatigue && <NRSScale type="fatigue" value={fatigueScore} onChange={setFatigueScore} />}
+                      </div>
                     )}
-                    {tests.fatigue && (
-                      <NRSScale type="fatigue" value={fatigueScore} onChange={setFatigueScore} />
-                    )}
+                    {tests.phq2 && <PHQ2Screen value={phq2Score} onChange={setPhq2Score} />}
+                    <div className={`grid gap-4 items-start ${gridClass}`}>
+                      {tests.reaction && (
+                        <div>
+                          <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                            반응속도 — 각성도
+                            <HintBadge text="5회 평균. 성인 평균 250-270ms. Deary et al., Lancet (2001)." />
+                          </Label>
+                          <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
+                        </div>
+                      )}
+                      {tests.digitSpan && (
+                        <div>
+                          <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                            숫자 기억 — 작업기억
+                            <HintBadge text="성인 정상 6-7자리. WAIS 표준 (Wechsler 1939; Miller 1956)." />
+                          </Label>
+                          <DigitSpanTest value={digitSpan} onChange={setDigitSpan} personalAvg={personalAvgs?.digitSpan} />
+                        </div>
+                      )}
+                      {tests.stroop && (
+                        <div>
+                          <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                            스트룹 — 실행기능
+                            <HintBadge text="전두엽 실행기능. Stroop (1935); Golden (1978)." />
+                          </Label>
+                          <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
+                        </div>
+                      )}
+                      {tests.balance && (
+                        <div>
+                          <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                            한 발 서기 — 균형
+                            <HintBadge text="정상 25초↑. 10초↓ 낙상 고위험. Bohannon et al. (1984)." />
+                          </Label>
+                          <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
+                        </div>
+                      )}
+                      {tests.chairStand && (
+                        <div>
+                          <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
+                            의자 일어서기 — 하체 근력
+                            <HintBadge text="30초간 횟수. Rikli & Jones (1999) JAPA." />
+                          </Label>
+                          <ChairStandTest value={chairStand} onChange={setChairStand} personalAvg={personalAvgs?.chairStand} />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-                {tests.phq2 && (
-                  <PHQ2Screen value={phq2Score} onChange={setPhq2Score} />
-                )}
-                <div className={`grid gap-4 items-start ${gridClass}`}>
-                  {tests.reaction && (
-                    <div>
-                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
-                        반응속도 — 각성도
-                        <HintBadge text="5회 평균 단순반응시간. 성인 평균 250-270ms. Deary et al., Lancet (2001). 수면·피로에 민감." />
+                );
+              })()}
+            </CardContent>
+          </Card>
+
+          {/* 운동 상세 */}
+          <Card>
+            <CardHeader><CardTitle>운동 상세</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {exercises.map((ex, idx) => (
+                  <div key={idx} className="rounded-xl border border-slate-200 p-3">
+                    <div className="grid gap-3 md:grid-cols-7">
+                      <Input placeholder="운동명" value={ex.name} onChange={(e) => updateExercise(idx, { name: e.target.value })} className="md:col-span-2" />
+                      <Select value={ex.category} onValueChange={(value) => value && updateExercise(idx, { category: value as ExerciseCategory })}>
+                        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {CATEGORY_ORDER.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABEL[c]}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      <Input type="number" placeholder="분" value={ex.durationMin || ""} onChange={(e) => updateExercise(idx, { durationMin: Number(e.target.value) })} />
+                      <div className="flex items-center gap-1.5">
+                        <Input type="number" placeholder="RPE" min={0} max={10} value={ex.rpe} onChange={(e) => updateExercise(idx, { rpe: e.target.value })} />
+                        <HintBadge text="RPE: 운동 자각도. 1=숨도 안 참, 5=약간 힘듦, 10=한계." />
+                      </div>
+                      <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
+                        <Checkbox checked={ex.completed} onCheckedChange={(c) => updateExercise(idx, { completed: c === true })} />
+                        완수
                       </Label>
-                      <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
-                    </div>
-                  )}
-                  {tests.digitSpan && (
-                    <div>
-                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
-                        숫자 기억 — 작업기억
-                        <HintBadge text="순서대로 나타나는 숫자 기억 범위. 성인 정상 6-7자리. WAIS 핵심 하위검사 (Wechsler 1939; Miller 1956)." />
+                      <Label className="flex items-center gap-1.5 text-sm whitespace-nowrap">
+                        <Checkbox checked={ex.pain} onCheckedChange={(c) => updateExercise(idx, { pain: c === true })} />
+                        통증
                       </Label>
-                      <DigitSpanTest value={digitSpan} onChange={setDigitSpan} personalAvg={personalAvgs?.digitSpan} />
                     </div>
-                  )}
-                  {tests.stroop && (
-                    <div>
-                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
-                        스트룹 — 실행기능
-                        <HintBadge text="글자 색깔 vs 뜻 간섭 저항력. 전두엽 실행기능 측정. Stroop (1935); Golden (1978) 표준화." />
-                      </Label>
-                      <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
+                    {ex.benefit && <p className="mt-2 text-xs text-slate-400 break-words">{ex.benefit}</p>}
+                    <div className="mt-2 flex gap-2">
+                      <Input placeholder="메모" value={ex.notes} onChange={(e) => updateExercise(idx, { notes: e.target.value })} className="flex-1 text-sm" />
+                      <Button type="button" variant="outline" size="sm" onClick={() => removeExercise(idx)} className="shrink-0 text-slate-500">삭제</Button>
                     </div>
-                  )}
-                  {tests.balance && (
-                    <div>
-                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
-                        한 발 서기 — 균형
-                        <HintBadge text="눈 뜬 한발 서기. 성인 정상 25초 이상. 10초 미만은 낙상 고위험. Bohannon et al., Physical Therapy (1984)." />
-                      </Label>
-                      <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
-                    </div>
-                  )}
-                  {tests.chairStand && (
-                    <div>
-                      <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
-                        의자 일어서기 — 하체 근력
-                        <HintBadge text="30초 의자 서기 횟수. 하체 근력·기능 이동성 측정. Rikli & Jones (1999) JAPA 표준 검사." />
-                      </Label>
-                      <ChairStandTest value={chairStand} onChange={setChairStand} personalAvg={personalAvgs?.chairStand} />
-                    </div>
-                  )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                <p className="mb-2 text-sm font-medium text-slate-600">카탈로그에서 추가</p>
+                <div className="mb-2 flex flex-wrap gap-2">
+                  <Input value={catalogSearch} onChange={(e) => setCatalogSearch(e.target.value)} placeholder="운동 검색" className="flex-1 text-sm" />
+                  <Select value={catalogFilter} onValueChange={(value) => value && setCatalogFilter(value as ExerciseCategory | "ALL")}>
+                    <SelectTrigger size="sm"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ALL">전체</SelectItem>
+                      {CATEGORY_ORDER.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABEL[c]}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="max-h-40 space-y-1 overflow-y-auto">
+                  {filteredCatalog.map((ex) => (
+                    <button key={ex.id} type="button" onClick={() => addFromCatalog(ex)} className="flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-white">
+                      <CategoryIcon category={ex.category} className="h-4 w-4 shrink-0 text-slate-300" />
+                      <span className="min-w-0 flex-1 truncate">{ex.name}</span>
+                      <span className="shrink-0 text-slate-300">+</span>
+                    </button>
+                  ))}
+                  {filteredCatalog.length === 0 && <p className="px-2 py-1.5 text-sm text-slate-400">검색 결과 없음</p>}
                 </div>
               </div>
-            );
-          })()}
-        </CardContent>
-      </Card>
+
+              <Button type="button" variant="outline" onClick={addCustomExercise} className="mt-3 border-dashed text-slate-600">+ 직접 추가</Button>
+
+              <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                <Field label="총 운동 시간(분)">
+                  <div className="rounded-lg bg-slate-50 px-2 py-1.5 text-sm">{totalExerciseMin}</div>
+                </Field>
+                <Field label="전체 RPE (1-10)" hint="오늘 운동 전체 자각도. 1=가벼움, 10=한계.">
+                  <Input type="number" min={0} max={10} value={overallRPE} onChange={(e) => setOverallRPE(e.target.value)} />
+                </Field>
+              </div>
+              <Field label="운동 메모" className="mt-3">
+                <Textarea value={exerciseNotes} onChange={(e) => setExerciseNotes(e.target.value)} rows={2} />
+              </Field>
+            </CardContent>
+          </Card>
+
+          {/* 식단 */}
+          <Card>
+            <CardHeader><CardTitle>식단</CardTitle></CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {meals.map((meal, idx) => (
+                  <div key={idx} className="grid gap-2 sm:grid-cols-5">
+                    <Input placeholder="구분 (아침식사 등)" value={meal.mealType} onChange={(e) => updateMeal(idx, { mealType: e.target.value })} />
+                    <Input type="time" value={meal.time} onChange={(e) => updateMeal(idx, { time: e.target.value })} />
+                    <Input placeholder="섭취 항목 (바나나, 요거트 등)" value={meal.items} onChange={(e) => updateMeal(idx, { items: e.target.value })} className="sm:col-span-2" />
+                    <div className="flex gap-2">
+                      <Input placeholder="메모" value={meal.notes} onChange={(e) => updateMeal(idx, { notes: e.target.value })} className="flex-1" />
+                      <Button type="button" variant="outline" size="sm" onClick={() => removeMeal(idx)} className="shrink-0 text-slate-500">삭제</Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Button type="button" variant="outline" onClick={addMeal} className="mt-3 border-dashed text-slate-600">+ 식사 추가</Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {submitError && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
