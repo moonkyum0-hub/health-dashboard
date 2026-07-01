@@ -57,7 +57,7 @@ export default function TimeQuickPicker({ value, onChange, presets }: Props) {
               onClick={() => setHour(h)}
               className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                 sel
-                  ? "bg-teal-500 text-white"
+                  ? "bg-blue-600 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -78,7 +78,7 @@ export default function TimeQuickPicker({ value, onChange, presets }: Props) {
             onClick={toggleHalf}
             className={`rounded-lg px-2.5 py-1 text-xs font-medium transition-colors ${
               isHalf
-                ? "bg-teal-100 text-teal-700"
+                ? "bg-blue-100 text-blue-700"
                 : "bg-slate-100 text-slate-500 hover:bg-slate-200"
             }`}
           >
@@ -89,7 +89,7 @@ export default function TimeQuickPicker({ value, onChange, presets }: Props) {
             type="time"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="ml-auto rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 focus:border-teal-400 focus:outline-none"
+            className="ml-auto rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 focus:border-blue-400 focus:outline-none"
           />
         </div>
       )}

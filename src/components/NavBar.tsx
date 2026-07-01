@@ -25,7 +25,7 @@ export default async function NavBar() {
   return (
     <header className="sticky top-0 z-20 border-b border-slate-100 bg-white/90 backdrop-blur-md shadow-sm">
       {/* health brand accent strip */}
-      <div className="h-0.5 bg-gradient-to-r from-teal-500 via-blue-500 to-indigo-500" />
+      <div className="h-0.5 bg-gradient-to-r from-blue-700 via-sky-500 to-blue-400" />
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <LogoMark size={26} />
@@ -42,12 +42,12 @@ export default async function NavBar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="whitespace-nowrap rounded-full bg-teal-500 px-3 py-1 text-xs font-semibold text-white hover:bg-teal-600"
+                    className="whitespace-nowrap rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700"
                   >
                     {link.label}
                   </Link>
                 ) : (
-                  <Link key={link.href} href={link.href} className="whitespace-nowrap hover:text-teal-600">
+                  <Link key={link.href} href={link.href} className="whitespace-nowrap hover:text-blue-600">
                     {link.label}
                   </Link>
                 )

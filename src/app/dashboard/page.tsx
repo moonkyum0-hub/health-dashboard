@@ -131,8 +131,8 @@ export default async function DashboardPage() {
       </div>
 
       {logs.length < 3 && (
-        <div className="mb-6 overflow-hidden rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-blue-50 p-5">
-          <p className="mb-3 text-sm font-semibold text-teal-800">
+        <div className="mb-6 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-blue-50 p-5">
+          <p className="mb-3 text-sm font-semibold text-blue-800">
             {logs.length === 0 ? "시작해볼까요?" : `${logs.length}번 기록했어요! 계속 이어가봐요.`}
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
@@ -145,11 +145,11 @@ export default async function DashboardPage() {
                 key={item.label}
                 className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium ${
                   item.done
-                    ? "bg-teal-500 text-white"
-                    : "border border-teal-200 bg-white text-teal-700"
+                    ? "bg-blue-500 text-white"
+                    : "border border-sky-200 bg-white text-blue-700"
                 }`}
               >
-                <span className={`text-base ${item.done ? "text-white" : "text-teal-400"}`}>
+                <span className={`text-base ${item.done ? "text-white" : "text-blue-400"}`}>
                   {item.done ? "✓" : "○"}
                 </span>
                 {item.href && !item.done ? (
@@ -160,20 +160,20 @@ export default async function DashboardPage() {
               </div>
             ))}
           </div>
-          <p className="mt-3 text-xs text-teal-600">
+          <p className="mt-3 text-xs text-blue-600">
             막히는 게 있으면{" "}
-            <Link href="/onboarding" className="underline hover:text-teal-800">온보딩 가이드</Link>를 다시 볼 수 있어요.
+            <Link href="/onboarding" className="underline hover:text-blue-800">온보딩 가이드</Link>를 다시 볼 수 있어요.
           </p>
         </div>
       )}
 
       {/* 최근 기록 히어로 카드 */}
       {latestLog && (
-        <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-teal-600 to-blue-700 p-5 text-white shadow-md">
+        <div className="mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-blue-700 to-sky-500 p-5 text-white shadow-md">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-teal-100">최근 기록</p>
-              <p className="text-xs text-teal-300">
+              <p className="text-sm font-semibold text-blue-100">최근 기록</p>
+              <p className="text-xs text-sky-300">
                 {latestLog.date.toISOString().slice(0, 10)} ({latestLog.dayOfWeek})
               </p>
             </div>
@@ -188,25 +188,25 @@ export default async function DashboardPage() {
             {latestEnergyAvg !== null && (
               <div>
                 <p className="text-2xl font-bold leading-none">{latestEnergyAvg}</p>
-                <p className="mt-1 text-xs text-teal-200">에너지 /10</p>
+                <p className="mt-1 text-xs text-sky-200">에너지 /10</p>
               </div>
             )}
             {latestLog.sleepHours !== null && (
               <div>
                 <p className="text-2xl font-bold leading-none">{latestLog.sleepHours}h</p>
-                <p className="mt-1 text-xs text-teal-200">수면</p>
+                <p className="mt-1 text-xs text-sky-200">수면</p>
               </div>
             )}
             {(latestLog.totalExerciseMin ?? 0) > 0 && (
               <div>
                 <p className="text-2xl font-bold leading-none">{latestLog.totalExerciseMin}</p>
-                <p className="mt-1 text-xs text-teal-200">운동 분</p>
+                <p className="mt-1 text-xs text-sky-200">운동 분</p>
               </div>
             )}
             {latestLog.reactionTimeMs != null && (
               <div>
                 <p className="text-2xl font-bold leading-none">{Math.round(latestLog.reactionTimeMs)}</p>
-                <p className="mt-1 text-xs text-teal-200">반응속도 ms</p>
+                <p className="mt-1 text-xs text-sky-200">반응속도 ms</p>
               </div>
             )}
           </div>
@@ -293,7 +293,7 @@ export default async function DashboardPage() {
               <div className="space-y-3">
                 {insights.map((insight, i) => {
                   const palettes = [
-                    { bg: "bg-teal-50", border: "border-l-teal-400", title: "text-teal-800", dot: "bg-teal-400" },
+                    { bg: "bg-blue-50", border: "border-l-blue-400", title: "text-blue-800", dot: "bg-blue-400" },
                     { bg: "bg-blue-50",  border: "border-l-blue-400",  title: "text-blue-800",  dot: "bg-blue-400"  },
                     { bg: "bg-amber-50", border: "border-l-amber-400", title: "text-amber-800", dot: "bg-amber-400" },
                     { bg: "bg-purple-50",border: "border-l-purple-400",title: "text-purple-800",dot: "bg-purple-400"},
