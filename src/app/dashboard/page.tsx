@@ -11,6 +11,7 @@ import AiFeedbackPanel from "@/components/AiFeedbackPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { computeRoleMetric, ROLE_LABEL, type UserRole } from "@/lib/roleMetrics";
+import { calcStreak, getWeekDays, isSameDay } from "@/lib/streak";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -143,6 +144,86 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 스트릭 + 주간 캘린더 */}
+      {(() => {
+        const streak = calcStreak(logs.map((l) => l.date));
+        const weekDays = getWeekDays();
+        const logDates = logs.map((l) => l.date);
+        const today = new Date();
+        const DAY_KO = ["월", "화", "수", "목", "금", "토", "일"];
+        return (
+          <Card className="mb-6">
+            <CardContent>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <p className="text-3xl font-bold">
+                    {streak > 0 ? `🔥 ${streak}일` : "0일"}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    {streak > 0 ? "연속 기록 중" : "오늘 첫 기록을 남겨보세요"}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-2 text-xs text-slate-400 text-right">이번 주</p>
+                  <div className="flex gap-1.5">
+                    {weekDays.map((day, i) => {
+                      const hasLog = logDates.some((d) => isSameDay(d, day));
+                      const isToday = isSameDay(day, today);
+                      return (
+                        <div key={i} className="flex flex-col items-center gap-1">
+                          <span className="text-[10px] text-slate-400">{DAY_KO[i]}</span>
+                          <div
+                            className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium
+                              ${hasLog ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"}
+                              ${isToday ? "ring-2 ring-blue-400 ring-offset-1" : ""}`}
+                          >
+                            {day.getDate()}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* 이번 달 잔디 */}
+              {logs.length > 0 && (() => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = now.getMonth();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                return (
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <p className="mb-2 text-xs text-slate-400">
+                      {now.getMonth() + 1}월 기록 현황
+                    </p>
+                    <div className="flex flex-wrap gap-1">
+                      {Array.from({ length: daysInMonth }, (_, i) => {
+                        const day = new Date(year, month, i + 1);
+                        const hasLog = logDates.some((d) => isSameDay(d, day));
+                        const isPast = day <= now;
+                        return (
+                          <div
+                            key={i}
+                            title={`${i + 1}일${hasLog ? " ✓" : ""}`}
+                            className={`h-4 w-4 rounded-sm text-[9px] flex items-center justify-center
+                              ${hasLog ? "bg-blue-500" : isPast ? "bg-slate-100" : "bg-slate-50"}
+                            `}
+                          />
+                        );
+                      })}
+                    </div>
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      이번 달 {logDates.filter((d) => d.getMonth() === month && d.getFullYear() === year).length}일 기록
+                    </p>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {logs.length === 0 ? (
         <p className="text-sm text-slate-400">
