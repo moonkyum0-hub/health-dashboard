@@ -14,7 +14,7 @@ export default async function NewLogPage() {
 
   await ensureCatalogSeeded();
 
-  const [routines, catalog, recentLogs] = await Promise.all([
+  const [routines, catalog, recentLogs, user] = await Promise.all([
     prisma.routine.findMany({
       where: { userId: session.user.id },
       include: { items: { include: { exerciseCatalog: true }, orderBy: { order: "asc" } } },
@@ -25,7 +25,18 @@ export default async function NewLogPage() {
       where: { userId: session.user.id },
       orderBy: { date: "desc" },
       take: 10,
-      select: { reactionTimeMs: true, stroopAccuracy: true, stroopAvgMs: true, balanceSec: true },
+      select: {
+        reactionTimeMs: true,
+        stroopAccuracy: true,
+        stroopAvgMs: true,
+        balanceSec: true,
+        digitSpan: true,
+        fatigueScore: true,
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
     }),
   ]);
 
@@ -39,6 +50,8 @@ export default async function NewLogPage() {
     stroopAccuracy: avg(recentLogs.map((l) => l.stroopAccuracy)),
     stroopAvgMs: avg(recentLogs.map((l) => l.stroopAvgMs)),
     balanceSec: avg(recentLogs.map((l) => l.balanceSec)),
+    digitSpan: avg(recentLogs.map((l) => l.digitSpan)),
+    fatigueScore: avg(recentLogs.map((l) => l.fatigueScore)),
   };
 
   const routinesForClient = routines.map((r) => ({
@@ -77,6 +90,7 @@ export default async function NewLogPage() {
           defaultSetsReps: c.defaultSetsReps,
         }))}
         personalAvgs={personalAvgs}
+        userRole={(user?.role ?? null) as "STUDENT" | "WORKER" | "ATHLETE" | "PATIENT" | "GENERAL" | null}
       />
     </div>
   );

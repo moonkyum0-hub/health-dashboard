@@ -11,6 +11,8 @@ import CategoryIcon from "@/components/icons/CategoryIcon";
 import ReactionTimeTest from "@/components/ReactionTimeTest";
 import StroopTest, { type StroopResult } from "@/components/StroopTest";
 import BalanceTest from "@/components/BalanceTest";
+import DigitSpanTest from "@/components/DigitSpanTest";
+import NRSScale from "@/components/NRSScale";
 import { createDailyLog } from "@/app/log/new/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -103,10 +105,23 @@ function buildRowsFromRoutine(routine: RoutineOption | null): ExerciseRow[] {
 
 const EMPTY_MEAL: MealRow = { mealType: "아침식사", time: "", items: "", notes: "" };
 
+type UserRole = "STUDENT" | "WORKER" | "ATHLETE" | "PATIENT" | "GENERAL" | null;
+
+function getTests(role: UserRole) {
+  switch (role) {
+    case "STUDENT":  return { reaction: true,  digitSpan: true,  stroop: true,  balance: false, fatigue: false, pain: false };
+    case "WORKER":   return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
+    case "ATHLETE":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
+    case "PATIENT":  return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: true  };
+    default:         return { reaction: true,  digitSpan: false, stroop: false, balance: true,  fatigue: true,  pain: false };
+  }
+}
+
 export default function LogForm({
   routines,
   catalog,
   personalAvgs,
+  userRole,
 }: {
   routines: RoutineOption[];
   catalog: CatalogOption[];
@@ -115,7 +130,10 @@ export default function LogForm({
     stroopAccuracy: number | null;
     stroopAvgMs: number | null;
     balanceSec: number | null;
+    digitSpan: number | null;
+    fatigueScore: number | null;
   };
+  userRole?: UserRole;
 }) {
   const today = useMemo(() => new Date(), []);
   const [date, setDate] = useState(toDateInputValue(today));
@@ -150,6 +168,9 @@ export default function LogForm({
   const [reactionTimeMs, setReactionTimeMs] = useState<number | null>(null);
   const [stroopResult, setStroopResult] = useState<StroopResult | null>(null);
   const [balanceSec, setBalanceSec] = useState<number | null>(null);
+  const [digitSpan, setDigitSpan] = useState<number | null>(null);
+  const [painScore, setPainScore] = useState<number | null>(null);
+  const [fatigueScore, setFatigueScore] = useState<number | null>(null);
   const [overallRPE, setOverallRPE] = useState("");
   const [exerciseNotes, setExerciseNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -274,6 +295,9 @@ export default function LogForm({
       stroopAccuracy: stroopResult?.accuracy ?? undefined,
       stroopAvgMs: stroopResult?.avgMs ?? undefined,
       balanceSec: balanceSec ?? undefined,
+      digitSpan: digitSpan ?? undefined,
+      painScore: painScore ?? undefined,
+      fatigueScore: fatigueScore ?? undefined,
       overallRPE: overallRPE || undefined,
       totalExerciseMin,
       exerciseNotes,
@@ -640,7 +664,7 @@ export default function LogForm({
 
       <Card>
         <CardHeader>
-          <CardTitle>에너지 &amp; 학습 집중도</CardTitle>
+          <CardTitle>에너지 &amp; 객관적 상태 측정</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -708,26 +732,59 @@ export default function LogForm({
             focus={studyFocusScore}
           />
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-3">
-            <div>
-              <Label className="mb-1 block text-sm font-normal text-slate-500">
-                반응속도 테스트 (각성도)
-              </Label>
-              <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
-            </div>
-            <div>
-              <Label className="mb-1 block text-sm font-normal text-slate-500">
-                스트룹 테스트 (주의력·실행기능)
-              </Label>
-              <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
-            </div>
-            <div>
-              <Label className="mb-1 block text-sm font-normal text-slate-500">
-                한 발 서기 (균형 능력)
-              </Label>
-              <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
-            </div>
-          </div>
+          {(() => {
+            const tests = getTests(userRole ?? null);
+            const gridCount = [tests.reaction, tests.digitSpan, tests.stroop, tests.balance].filter(Boolean).length;
+            const gridClass = gridCount >= 3 ? "sm:grid-cols-3" : gridCount === 2 ? "sm:grid-cols-2" : "sm:grid-cols-1";
+            return (
+              <div className="mt-4 space-y-3">
+                {(tests.pain || tests.fatigue) && (
+                  <div className={`grid gap-3 ${tests.pain && tests.fatigue ? "sm:grid-cols-2" : ""}`}>
+                    {tests.pain && (
+                      <NRSScale type="pain" value={painScore} onChange={setPainScore} />
+                    )}
+                    {tests.fatigue && (
+                      <NRSScale type="fatigue" value={fatigueScore} onChange={setFatigueScore} />
+                    )}
+                  </div>
+                )}
+                <div className={`grid gap-4 ${gridClass}`}>
+                  {tests.reaction && (
+                    <div>
+                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                        반응속도 — 각성도
+                      </Label>
+                      <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
+                    </div>
+                  )}
+                  {tests.digitSpan && (
+                    <div>
+                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                        숫자 기억 — 작업기억
+                      </Label>
+                      <DigitSpanTest value={digitSpan} onChange={setDigitSpan} personalAvg={personalAvgs?.digitSpan} />
+                    </div>
+                  )}
+                  {tests.stroop && (
+                    <div>
+                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                        스트룹 — 주의력·실행기능
+                      </Label>
+                      <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
+                    </div>
+                  )}
+                  {tests.balance && (
+                    <div>
+                      <Label className="mb-1 block text-sm font-normal text-slate-500">
+                        한 발 서기 — 균형·낙상위험
+                      </Label>
+                      <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
 

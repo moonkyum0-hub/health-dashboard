@@ -137,6 +137,9 @@ model DailyLog {
   stroopAccuracy    Int?
   stroopAvgMs       Float?
   balanceSec        Float?
+  digitSpan         Int?
+  painScore         Int?
+  fatigueScore      Int?
 
   totalExerciseMin Int?
   overallRPE       Int?
