@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { getStroopAccuracyStatus, getStroopAvgMsStatus, calcTrend } from "@/lib/scoreStatus";
 
 type ColorKey = "RED" | "BLUE" | "GREEN" | "YELLOW";
 
@@ -25,9 +26,13 @@ export type StroopResult = { accuracy: number; avgMs: number };
 export default function StroopTest({
   value,
   onChange,
+  personalAvgAccuracy,
+  personalAvgMs,
 }: {
   value: StroopResult | null;
   onChange: (result: StroopResult | null) => void;
+  personalAvgAccuracy?: number | null;
+  personalAvgMs?: number | null;
 }) {
   const [active, setActive] = useState(false);
   const [round, setRound] = useState(0);
@@ -134,21 +139,41 @@ export default function StroopTest({
         </div>
       )}
 
-      {!active && value && (
-        <div className="flex h-28 w-full flex-col items-center justify-center rounded-xl bg-blue-50 text-sm text-blue-700">
-          <span>
-            정확도 <span className="text-lg font-semibold">{value.accuracy}%</span> · 평균{" "}
-            <span className="text-lg font-semibold">{value.avgMs}ms</span>
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="mt-2 text-xs text-blue-500 underline"
-          >
-            다시 측정
-          </button>
-        </div>
-      )}
+      {!active && value && (() => {
+        const accStatus = getStroopAccuracyStatus(value.accuracy);
+        const msStatus = getStroopAvgMsStatus(value.avgMs);
+        const accTrend = personalAvgAccuracy ? calcTrend(value.accuracy, personalAvgAccuracy, true) : null;
+        const msTrend = personalAvgMs ? calcTrend(value.avgMs, personalAvgMs, false) : null;
+        return (
+          <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-blue-700">
+                정확도 {value.accuracy}% · 평균 {value.avgMs}ms
+              </span>
+              <button type="button" onClick={reset} className="text-xs text-blue-400 underline">다시 측정</button>
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${accStatus.color} ${accStatus.textColor}`}>정확도 {accStatus.label}</span>
+                {accTrend && (
+                  <span className={`text-xs font-medium ${accTrend.improved ? "text-green-600" : "text-red-500"}`}>
+                    {accTrend.direction} 내 평균 대비 {accTrend.changePct}%
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${msStatus.color} ${msStatus.textColor}`}>반응 {msStatus.label}</span>
+                {msTrend && (
+                  <span className={`text-xs font-medium ${msTrend.improved ? "text-green-600" : "text-red-500"}`}>
+                    {msTrend.direction} 내 평균 대비 {msTrend.changePct}%
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-500">{accStatus.description}</p>
+            </div>
+          </div>
+        );
+      })()}
 
       <p className="mt-2 text-xs text-slate-400">
         스트룹 테스트(Stroop Test): 글자의 뜻과 색깔이 다를 때 색깔만 빠르게 골라내는 능력을 측정해

@@ -1,13 +1,16 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { getBalanceStatus, calcTrend } from "@/lib/scoreStatus";
 
 export default function BalanceTest({
   value,
   onChange,
+  personalAvg,
 }: {
   value: number | null;
   onChange: (sec: number | null) => void;
+  personalAvg?: number | null;
 }) {
   const [holding, setHolding] = useState(false);
   const [elapsedMs, setElapsedMs] = useState(0);
@@ -63,20 +66,29 @@ export default function BalanceTest({
         </button>
       )}
 
-      {!holding && value !== null && (
-        <div className="flex h-28 w-full flex-col items-center justify-center rounded-xl bg-blue-50 text-sm text-blue-700">
-          <span>
-            유지 시간 <span className="text-lg font-semibold">{value}초</span>
-          </span>
-          <button
-            type="button"
-            onClick={reset}
-            className="mt-2 text-xs text-blue-500 underline"
-          >
-            다시 측정
-          </button>
-        </div>
-      )}
+      {!holding && value !== null && (() => {
+        const status = getBalanceStatus(value);
+        const trend = personalAvg ? calcTrend(value, personalAvg, true) : null;
+        return (
+          <div className="rounded-xl bg-blue-50 px-4 py-3 text-sm">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-semibold text-blue-700">유지 시간 {value}초</span>
+              <button type="button" onClick={reset} className="text-xs text-blue-400 underline">다시 측정</button>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color} ${status.textColor}`}>
+                {status.label}
+              </span>
+              {trend && (
+                <span className={`text-xs font-medium ${trend.improved ? "text-green-600" : "text-red-500"}`}>
+                  {trend.direction} 내 평균({personalAvg}초) 대비 {trend.changePct}% {trend.improved ? "나음" : "낮음"}
+                </span>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-slate-500">{status.description}</p>
+          </div>
+        );
+      })()}
 
       <p className="mt-2 text-xs text-slate-400">
         한 발 서기 균형 테스트: 눈을 뜨고 한쪽 다리를 들어올린 상태로 버튼을 누른 채 버틸 수 있는

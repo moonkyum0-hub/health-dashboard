@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { getReactionTimeStatus, calcTrend } from "@/lib/scoreStatus";
 
 type Phase = "idle" | "waiting" | "ready" | "tooSoon" | "done";
 
@@ -9,9 +10,11 @@ const ROUNDS = 5;
 export default function ReactionTimeTest({
   value,
   onChange,
+  personalAvg,
 }: {
   value: number | null;
   onChange: (ms: number | null) => void;
+  personalAvg?: number | null;
 }) {
   const [phase, setPhase] = useState<Phase>("idle");
   const [round, setRound] = useState(0);
@@ -104,18 +107,33 @@ export default function ReactionTimeTest({
       {phase !== "idle" && phase !== "done" && (
         <p className="mt-1 text-xs text-slate-400">{round}/{ROUNDS}회 진행 중</p>
       )}
-      {phase === "done" && (
-        <button
-          type="button"
-          onClick={reset}
-          className="mt-1 text-xs text-slate-400 underline hover:text-slate-600"
-        >
-          다시 측정
-        </button>
+      {phase === "done" && value !== null && (() => {
+        const status = getReactionTimeStatus(value);
+        const trend = personalAvg ? calcTrend(value, personalAvg, false) : null;
+        return (
+          <div className="mt-2 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${status.color} ${status.textColor}`}>
+                {status.label}
+              </span>
+              <span className="text-xs text-slate-500">{status.description}</span>
+            </div>
+            {trend && (
+              <p className={`text-xs font-medium ${trend.improved ? "text-green-600" : "text-red-500"}`}>
+                {trend.direction} 내 평균({personalAvg}ms) 대비 {trend.changePct}% {trend.improved ? "빠름" : "느림"}
+              </p>
+            )}
+            <button type="button" onClick={reset} className="text-xs text-slate-400 underline hover:text-slate-600">
+              다시 측정
+            </button>
+          </div>
+        );
+      })()}
+      {phase !== "done" && (
+        <p className="mt-2 text-xs text-slate-400">
+          색이 초록색으로 바뀌는 순간 최대한 빠르게 탭하세요. {ROUNDS}회 평균을 기록합니다.
+        </p>
       )}
-      <p className="mt-2 text-xs text-slate-400">
-        색이 초록색으로 바뀌는 순간 최대한 빠르게 탭하세요. {ROUNDS}회 평균을 객관적인 각성도·집중도 지표로 기록합니다.
-      </p>
     </div>
   );
 }

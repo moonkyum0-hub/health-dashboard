@@ -106,9 +106,16 @@ const EMPTY_MEAL: MealRow = { mealType: "아침식사", time: "", items: "", not
 export default function LogForm({
   routines,
   catalog,
+  personalAvgs,
 }: {
   routines: RoutineOption[];
   catalog: CatalogOption[];
+  personalAvgs?: {
+    reactionTimeMs: number | null;
+    stroopAccuracy: number | null;
+    stroopAvgMs: number | null;
+    balanceSec: number | null;
+  };
 }) {
   const today = useMemo(() => new Date(), []);
   const [date, setDate] = useState(toDateInputValue(today));
@@ -706,19 +713,19 @@ export default function LogForm({
               <Label className="mb-1 block text-sm font-normal text-slate-500">
                 반응속도 테스트 (각성도)
               </Label>
-              <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} />
+              <ReactionTimeTest value={reactionTimeMs} onChange={setReactionTimeMs} personalAvg={personalAvgs?.reactionTimeMs} />
             </div>
             <div>
               <Label className="mb-1 block text-sm font-normal text-slate-500">
                 스트룹 테스트 (주의력·실행기능)
               </Label>
-              <StroopTest value={stroopResult} onChange={setStroopResult} />
+              <StroopTest value={stroopResult} onChange={setStroopResult} personalAvgAccuracy={personalAvgs?.stroopAccuracy} personalAvgMs={personalAvgs?.stroopAvgMs} />
             </div>
             <div>
               <Label className="mb-1 block text-sm font-normal text-slate-500">
                 한 발 서기 (균형 능력)
               </Label>
-              <BalanceTest value={balanceSec} onChange={setBalanceSec} />
+              <BalanceTest value={balanceSec} onChange={setBalanceSec} personalAvg={personalAvgs?.balanceSec} />
             </div>
           </div>
         </CardContent>

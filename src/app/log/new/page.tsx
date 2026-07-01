@@ -14,14 +14,32 @@ export default async function NewLogPage() {
 
   await ensureCatalogSeeded();
 
-  const [routines, catalog] = await Promise.all([
+  const [routines, catalog, recentLogs] = await Promise.all([
     prisma.routine.findMany({
       where: { userId: session.user.id },
       include: { items: { include: { exerciseCatalog: true }, orderBy: { order: "asc" } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.exerciseCatalog.findMany({ orderBy: { name: "asc" } }),
+    prisma.dailyLog.findMany({
+      where: { userId: session.user.id },
+      orderBy: { date: "desc" },
+      take: 10,
+      select: { reactionTimeMs: true, stroopAccuracy: true, stroopAvgMs: true, balanceSec: true },
+    }),
   ]);
+
+  function avg(vals: (number | null)[]) {
+    const nums = vals.filter((v): v is number => v != null);
+    return nums.length >= 5 ? Math.round(nums.reduce((a, b) => a + b, 0) / nums.length) : null;
+  }
+
+  const personalAvgs = {
+    reactionTimeMs: avg(recentLogs.map((l) => l.reactionTimeMs)),
+    stroopAccuracy: avg(recentLogs.map((l) => l.stroopAccuracy)),
+    stroopAvgMs: avg(recentLogs.map((l) => l.stroopAvgMs)),
+    balanceSec: avg(recentLogs.map((l) => l.balanceSec)),
+  };
 
   const routinesForClient = routines.map((r) => ({
     id: r.id,
@@ -58,6 +76,7 @@ export default async function NewLogPage() {
           defaultDurationMin: c.defaultDurationMin,
           defaultSetsReps: c.defaultSetsReps,
         }))}
+        personalAvgs={personalAvgs}
       />
     </div>
   );
