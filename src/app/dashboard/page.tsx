@@ -23,6 +23,10 @@ export default async function DashboardPage() {
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   const role = user?.role as UserRole | null;
 
+  if (!user?.onboardingDone) {
+    redirect("/onboarding");
+  }
+
   const logs = await prisma.dailyLog.findMany({
     where: { userId: session.user.id },
     orderBy: { date: "asc" },
@@ -102,24 +106,47 @@ export default async function DashboardPage() {
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <h1 className="mb-6 text-xl font-display font-semibold">대시보드</h1>
 
-      {!role && (
-        <Card className="mb-6 border-blue-200 bg-blue-50">
+      {logs.length < 3 && (
+        <Card className="mb-6 border-slate-200 bg-slate-50">
           <CardContent>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm text-blue-800">
-                사용 목적을 설정하면 나에게 맞는 핵심 지표를 보여드려요.
-              </p>
-              <Button size="sm" className="shrink-0 rounded-full" render={<Link href="/settings" />}>
-                목적 설정하기
-              </Button>
+            <p className="mb-3 text-sm font-medium text-slate-700">
+              {logs.length === 0 ? "🚀 시작해볼까요?" : `📈 ${logs.length}번 기록했어요! 계속 이어가봐요.`}
+            </p>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {[
+                { done: true, label: "계정 만들기", href: null },
+                { done: logs.length > 0, label: "첫 기록 작성하기", href: "/log/new" },
+                { done: logs.length >= 3, label: "3일 연속 기록하기", href: "/log/new" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                    item.done ? "bg-blue-50 text-blue-700" : "bg-white text-slate-500 border border-slate-200"
+                  }`}
+                >
+                  <span>{item.done ? "✓" : "○"}</span>
+                  {item.href && !item.done ? (
+                    <Link href={item.href} className="hover:underline">{item.label}</Link>
+                  ) : (
+                    <span>{item.label}</span>
+                  )}
+                </div>
+              ))}
             </div>
+            <p className="mt-3 text-xs text-slate-400">
+              막히는 게 있으면{" "}
+              <Link href="/onboarding" className="underline hover:text-slate-600">
+                온보딩 가이드
+              </Link>
+              를 다시 볼 수 있어요.
+            </p>
           </CardContent>
         </Card>
       )}
 
       {logs.length === 0 ? (
         <p className="text-sm text-slate-400">
-          기록이 쌓이면 여기에서 추세와 맞춤 추천을 확인할 수 있습니다.
+          첫 기록을 작성하면 여기에서 추세와 맞춤 추천을 확인할 수 있습니다.
         </p>
       ) : (
         <div className="space-y-6">

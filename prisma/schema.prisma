@@ -17,9 +17,11 @@ model User {
   email        String       @unique
   passwordHash String
   name         String?
-  role         String?
-  accountType  String       @default("USER") // USER | EXPERT | ADMIN
-  createdAt    DateTime     @default(now())
+  role            String?
+  accountType     String       @default("USER") // USER | EXPERT | ADMIN
+  onboardingDone  Boolean      @default(false)
+  defaultWakeTime String?
+  createdAt       DateTime     @default(now())
   dailyLogs    DailyLog[]
   aiFeedbacks  AiFeedback[]
   routines     Routine[]

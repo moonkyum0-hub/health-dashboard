@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import RoleSettingsForm from "@/components/RoleSettingsForm";
+import { resetOnboarding } from "@/app/onboarding/actions";
 import type { UserRole } from "@/lib/roleMetrics";
 
 const ACCOUNT_TYPE_LABEL: Record<string, string> = {
@@ -54,7 +55,7 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-base">사용 목적</CardTitle>
         </CardHeader>
@@ -63,6 +64,22 @@ export default async function SettingsPage() {
             선택한 목적에 맞춰 대시보드에서 보여드리는 핵심 지표가 달라져요.
           </p>
           <RoleSettingsForm initialRole={(user.role as UserRole) ?? "GENERAL"} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">온보딩 가이드</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-sm text-slate-500">
+            앱 사용법이 궁금하거나 처음 설정을 다시 하고 싶을 때 온보딩을 다시 볼 수 있어요.
+          </p>
+          <form action={resetOnboarding}>
+            <Button type="submit" variant="outline" className="rounded-full">
+              온보딩 다시 보기
+            </Button>
+          </form>
         </CardContent>
       </Card>
     </div>
