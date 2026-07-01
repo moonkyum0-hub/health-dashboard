@@ -60,7 +60,7 @@ export default function StreakWidget({
           <p className="text-3xl font-bold">
             {streak > 0 ? `🔥 ${streak}일` : "0일"}
           </p>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500">
             {streak > 0 ? "연속 기록 중" : "오늘 첫 기록을 남겨보세요"}
           </p>
         </div>
@@ -72,7 +72,7 @@ export default function StreakWidget({
           className="group text-right"
           aria-label="월간 캘린더 열기/닫기"
         >
-          <p className="mb-2 flex items-center justify-end gap-1 text-xs text-slate-400">
+          <p className="mb-2 flex items-center justify-end gap-1 text-xs text-slate-500">
             이번 주
             <span className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}>
               ▾
@@ -84,10 +84,10 @@ export default function StreakWidget({
               const isToday = isSameDay(day, today);
               return (
                 <div key={i} className="flex flex-col items-center gap-1">
-                  <span className="text-[10px] text-slate-400">{DAY_KO[i]}</span>
+                  <span className="text-[10px] text-slate-500">{DAY_KO[i]}</span>
                   <div
                     className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium
-                      ${hasLog ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-400"}
+                      ${hasLog ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600"}
                       ${isToday ? "ring-2 ring-blue-400 ring-offset-1" : ""}
                       group-hover:opacity-80 transition-opacity`}
                   >
@@ -103,12 +103,12 @@ export default function StreakWidget({
       {/* 월 캘린더 — 펼쳐지는 영역 */}
       {expanded && (
         <div className="mt-3 border-t border-slate-100 pt-3">
-          <p className="mb-2 text-xs text-slate-400">{month + 1}월 기록 현황</p>
+          <p className="mb-2 text-xs text-slate-500">{month + 1}월 기록 현황</p>
           <div className="w-fit">
             {/* 요일 헤더 */}
             <div className="grid grid-cols-7 gap-x-1 mb-0.5">
               {DAY_KO.map((d) => (
-                <span key={d} className="w-7 text-center text-[10px] text-slate-400">{d}</span>
+                <span key={d} className="w-7 text-center text-[10px] text-slate-500">{d}</span>
               ))}
             </div>
             {/* 날짜 그리드 */}
@@ -124,9 +124,9 @@ export default function StreakWidget({
                       key={di}
                       className={`flex h-7 w-7 items-center justify-center rounded-full text-xs
                         ${hasLog ? "bg-blue-600 font-semibold text-white" : ""}
-                        ${!hasLog && !isFuture ? "text-slate-500" : ""}
-                        ${isFuture ? "text-slate-200" : ""}
-                        ${isToday && !hasLog ? "ring-2 ring-blue-300 ring-offset-1" : ""}
+                        ${!hasLog && !isFuture ? "text-slate-700" : ""}
+                        ${isFuture ? "text-slate-300" : ""}
+                        ${isToday && !hasLog ? "ring-2 ring-blue-300 ring-offset-1 font-medium" : ""}
                         ${isToday && hasLog ? "ring-2 ring-blue-400 ring-offset-1" : ""}`}
                     >
                       {day.getDate()}
@@ -136,7 +136,7 @@ export default function StreakWidget({
               </div>
             ))}
           </div>
-          <p className="mt-2 text-xs text-slate-400">{thisMonthCount}일 기록</p>
+          <p className="mt-2 text-xs text-slate-500">{thisMonthCount}일 기록</p>
         </div>
       )}
     </div>
