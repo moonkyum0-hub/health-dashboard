@@ -102,27 +102,26 @@ export default function StreakWidget({
 
       {/* 월 캘린더 — 펼쳐지는 영역 */}
       {expanded && (
-        <div className="mt-4 border-t border-slate-100 pt-4">
-          <p className="mb-3 text-xs text-slate-400">
-            {month + 1}월 기록 현황
-          </p>
-          {/* 요일 헤더 */}
-          <div className="grid grid-cols-7 mb-1">
-            {DAY_KO.map((d) => (
-              <span key={d} className="text-center text-[10px] text-slate-400">{d}</span>
-            ))}
-          </div>
-          {/* 날짜 그리드 */}
-          {weeks.map((week, wi) => (
-            <div key={wi} className="grid grid-cols-7">
-              {week.map((day, di) => {
-                if (!day) return <div key={di} />;
-                const hasLog = logDates.some((d) => isSameDay(d, day));
-                const isToday = isSameDay(day, today);
-                const isFuture = day > today;
-                return (
-                  <div key={di} className="flex justify-center py-0.5">
+        <div className="mt-3 border-t border-slate-100 pt-3">
+          <p className="mb-2 text-xs text-slate-400">{month + 1}월 기록 현황</p>
+          <div className="w-fit">
+            {/* 요일 헤더 */}
+            <div className="grid grid-cols-7 gap-x-1 mb-0.5">
+              {DAY_KO.map((d) => (
+                <span key={d} className="w-7 text-center text-[10px] text-slate-400">{d}</span>
+              ))}
+            </div>
+            {/* 날짜 그리드 */}
+            {weeks.map((week, wi) => (
+              <div key={wi} className="grid grid-cols-7 gap-x-1 gap-y-0.5">
+                {week.map((day, di) => {
+                  if (!day) return <div key={di} className="w-7 h-7" />;
+                  const hasLog = logDates.some((d) => isSameDay(d, day));
+                  const isToday = isSameDay(day, today);
+                  const isFuture = day > today;
+                  return (
                     <div
+                      key={di}
                       className={`flex h-7 w-7 items-center justify-center rounded-full text-xs
                         ${hasLog ? "bg-blue-600 font-semibold text-white" : ""}
                         ${!hasLog && !isFuture ? "text-slate-500" : ""}
@@ -132,11 +131,11 @@ export default function StreakWidget({
                     >
                       {day.getDate()}
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+                  );
+                })}
+              </div>
+            ))}
+          </div>
           <p className="mt-2 text-xs text-slate-400">{thisMonthCount}일 기록</p>
         </div>
       )}
