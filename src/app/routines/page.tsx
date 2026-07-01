@@ -2,11 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ROUTINE_TEMPLATES } from "@/lib/routineTemplates";
 import { addRoutineFromTemplate } from "@/app/routines/actions";
+import RoutineListWithDialog from "@/components/RoutineDetailDialog";
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -16,7 +15,12 @@ export default async function RoutinesPage() {
 
   const routines = await prisma.routine.findMany({
     where: { userId: session.user.id },
-    include: { items: true },
+    include: {
+      items: {
+        include: { exerciseCatalog: true },
+        orderBy: { order: "asc" },
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
@@ -55,31 +59,23 @@ export default async function RoutinesPage() {
       {routines.length === 0 ? (
         <p className="text-sm text-slate-400">아직 만든 루틴이 없습니다.</p>
       ) : (
-        <ul className="space-y-3">
-          {routines.map((routine) => {
-            const days = routine.days
-              .split(",")
-              .filter(Boolean)
-              .map((d) => DAY_LABELS[Number(d)]);
-            return (
-              <li key={routine.id}>
-                <Link href={`/routines/${routine.id}`} className="block">
-                  <Card className="transition-colors hover:border-blue-300">
-                    <CardContent>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="truncate font-medium">{routine.name}</span>
-                        <Badge variant="secondary">
-                          {days.length > 0 ? days.join(", ") : "요일 미지정"}
-                        </Badge>
-                      </div>
-                      <p className="mt-1 text-sm text-slate-500">운동 {routine.items.length}개</p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
+        <RoutineListWithDialog
+          routines={routines.map((r) => ({
+            id: r.id,
+            name: r.name,
+            days: r.days.split(",").filter(Boolean).map((d) => DAY_LABELS[Number(d)]),
+            totalMin: r.items.reduce((s, i) => s + (i.durationMin ?? 0), 0),
+            items: r.items.map((i) => ({
+              id: i.id,
+              name: i.exerciseCatalog?.name ?? i.customName ?? "",
+              category: i.exerciseCatalog?.category ?? null,
+              description: i.exerciseCatalog?.description ?? null,
+              benefit: i.exerciseCatalog?.benefit ?? null,
+              durationMin: i.durationMin ?? null,
+              setsReps: i.setsReps ?? null,
+            })),
+          }))}
+        />
       )}
     </div>
   );
