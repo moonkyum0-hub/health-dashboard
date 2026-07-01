@@ -3,9 +3,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Button } from "@/components/ui/button";
-import { ROUTINE_TEMPLATES } from "@/lib/routineTemplates";
-import { addRoutineFromTemplate } from "@/app/routines/actions";
 import RoutineListWithDialog from "@/components/RoutineDetailDialog";
+import RoutineTemplateCards from "@/components/RoutineTemplateCards";
 
 const DAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -38,22 +37,8 @@ export default async function RoutinesPage() {
       </p>
 
       <div className="mb-8">
-        <h2 className="mb-3 text-sm font-medium text-slate-500">추천 루틴</h2>
-        <ul className="grid gap-2 sm:grid-cols-2">
-          {ROUTINE_TEMPLATES.map((tpl) => (
-            <li key={tpl.id} className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 px-4 py-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium text-sm">{tpl.name}</p>
-                <p className="truncate text-xs text-slate-400 mt-0.5">{tpl.description}</p>
-              </div>
-              <form action={addRoutineFromTemplate.bind(null, tpl.id)} className="shrink-0">
-                <Button type="submit" size="sm" variant="outline" className="rounded-full">
-                  + 추가
-                </Button>
-              </form>
-            </li>
-          ))}
-        </ul>
+        <h2 className="mb-3 text-sm font-medium text-slate-500">추천 루틴 <span className="font-normal text-slate-400">(클릭하면 운동 목록을 볼 수 있어요)</span></h2>
+        <RoutineTemplateCards />
       </div>
 
       {routines.length === 0 ? (
