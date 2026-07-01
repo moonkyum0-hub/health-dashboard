@@ -28,14 +28,14 @@ export default function DigitSpanTest({
   onChange: (span: number | null) => void;
   personalAvg?: number | null;
 }) {
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>(() => (value !== null ? "done" : "idle"));
   const [currentLength, setCurrentLength] = useState(MIN_LENGTH);
   const [trialIndex, setTrialIndex] = useState(0);
   const [digitIdx, setDigitIdx] = useState(0);
   const [currentSeq, setCurrentSeq] = useState<number[]>([]);
   const [userInput, setUserInput] = useState("");
   const [feedbackCorrect, setFeedbackCorrect] = useState(false);
-  const [bestSpan, setBestSpan] = useState(0);
+  const [bestSpan, setBestSpan] = useState(value ?? 0);
   const [countdown, setCountdown] = useState(3);
   const inputRef = useRef<HTMLInputElement>(null);
 

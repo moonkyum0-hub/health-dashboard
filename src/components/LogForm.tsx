@@ -14,6 +14,7 @@ import BalanceTest from "@/components/BalanceTest";
 import DigitSpanTest from "@/components/DigitSpanTest";
 import NRSScale from "@/components/NRSScale";
 import { createDailyLog } from "@/app/log/new/actions";
+import { updateDailyLog } from "@/app/logs/[id]/actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -107,6 +108,31 @@ const EMPTY_MEAL: MealRow = { mealType: "아침식사", time: "", items: "", not
 
 type UserRole = "STUDENT" | "WORKER" | "ATHLETE" | "PATIENT" | "GENERAL" | null;
 
+interface InitialData {
+  id: string;
+  date: string;
+  bedTime: string;
+  wakeTime: string;
+  sleepHours: string;
+  sleepQuality: string;
+  energyMorning: string;
+  energyAfternoon: string;
+  energyEvening: string;
+  studyFocusScore: string;
+  studyFocusMinutes: string;
+  reactionTimeMs: number | null;
+  stroopAccuracy: number | null;
+  stroopAvgMs: number | null;
+  balanceSec: number | null;
+  digitSpan: number | null;
+  painScore: number | null;
+  fatigueScore: number | null;
+  overallRPE: string;
+  exerciseNotes: string;
+  exercises: ExerciseRow[];
+  meals: MealRow[];
+}
+
 function getTests(role: UserRole) {
   switch (role) {
     case "STUDENT":  return { reaction: true,  digitSpan: true,  stroop: true,  balance: false, fatigue: false, pain: false };
@@ -122,6 +148,7 @@ export default function LogForm({
   catalog,
   personalAvgs,
   userRole,
+  initialData,
 }: {
   routines: RoutineOption[];
   catalog: CatalogOption[];
@@ -134,9 +161,11 @@ export default function LogForm({
     fatigueScore: number | null;
   };
   userRole?: UserRole;
+  initialData?: InitialData;
 }) {
+  const isEditMode = !!initialData?.id;
   const today = useMemo(() => new Date(), []);
-  const [date, setDate] = useState(toDateInputValue(today));
+  const [date, setDate] = useState(initialData?.date ?? toDateInputValue(today));
 
   const dayOfWeek = new Date(date).getDay();
   const matchingRoutine = routines.find((r) => r.days.includes(dayOfWeek)) ?? null;
@@ -148,31 +177,37 @@ export default function LogForm({
     routines.find((r) => r.id === selectedRoutineId) ?? null;
 
   const [exercises, setExercises] = useState<ExerciseRow[]>(() =>
-    buildRowsFromRoutine(matchingRoutine)
+    initialData?.exercises.length ? initialData.exercises : buildRowsFromRoutine(matchingRoutine)
   );
-  const [meals, setMeals] = useState<MealRow[]>([{ ...EMPTY_MEAL }]);
+  const [meals, setMeals] = useState<MealRow[]>(
+    initialData?.meals.length ? initialData.meals : [{ ...EMPTY_MEAL }]
+  );
 
   const [catalogSearch, setCatalogSearch] = useState("");
   const [catalogFilter, setCatalogFilter] = useState<ExerciseCategory | "ALL">("ALL");
 
-  const [bedTime, setBedTime] = useState("");
-  const [wakeTime, setWakeTime] = useState("04:30");
-  const [sleepHours, setSleepHours] = useState("");
-  const [sleepHoursTouched, setSleepHoursTouched] = useState(false);
-  const [sleepQuality, setSleepQuality] = useState("");
-  const [energyMorning, setEnergyMorning] = useState("");
-  const [energyAfternoon, setEnergyAfternoon] = useState("");
-  const [energyEvening, setEnergyEvening] = useState("");
-  const [studyFocusScore, setStudyFocusScore] = useState("");
-  const [studyFocusMinutes, setStudyFocusMinutes] = useState("");
-  const [reactionTimeMs, setReactionTimeMs] = useState<number | null>(null);
-  const [stroopResult, setStroopResult] = useState<StroopResult | null>(null);
-  const [balanceSec, setBalanceSec] = useState<number | null>(null);
-  const [digitSpan, setDigitSpan] = useState<number | null>(null);
-  const [painScore, setPainScore] = useState<number | null>(null);
-  const [fatigueScore, setFatigueScore] = useState<number | null>(null);
-  const [overallRPE, setOverallRPE] = useState("");
-  const [exerciseNotes, setExerciseNotes] = useState("");
+  const [bedTime, setBedTime] = useState(initialData?.bedTime ?? "");
+  const [wakeTime, setWakeTime] = useState(initialData?.wakeTime ?? "04:30");
+  const [sleepHours, setSleepHours] = useState(initialData?.sleepHours ?? "");
+  const [sleepHoursTouched, setSleepHoursTouched] = useState(!!initialData?.sleepHours);
+  const [sleepQuality, setSleepQuality] = useState(initialData?.sleepQuality ?? "");
+  const [energyMorning, setEnergyMorning] = useState(initialData?.energyMorning ?? "");
+  const [energyAfternoon, setEnergyAfternoon] = useState(initialData?.energyAfternoon ?? "");
+  const [energyEvening, setEnergyEvening] = useState(initialData?.energyEvening ?? "");
+  const [studyFocusScore, setStudyFocusScore] = useState(initialData?.studyFocusScore ?? "");
+  const [studyFocusMinutes, setStudyFocusMinutes] = useState(initialData?.studyFocusMinutes ?? "");
+  const [reactionTimeMs, setReactionTimeMs] = useState<number | null>(initialData?.reactionTimeMs ?? null);
+  const [stroopResult, setStroopResult] = useState<StroopResult | null>(
+    initialData?.stroopAccuracy != null && initialData?.stroopAvgMs != null
+      ? { accuracy: initialData.stroopAccuracy, avgMs: initialData.stroopAvgMs }
+      : null
+  );
+  const [balanceSec, setBalanceSec] = useState<number | null>(initialData?.balanceSec ?? null);
+  const [digitSpan, setDigitSpan] = useState<number | null>(initialData?.digitSpan ?? null);
+  const [painScore, setPainScore] = useState<number | null>(initialData?.painScore ?? null);
+  const [fatigueScore, setFatigueScore] = useState<number | null>(initialData?.fatigueScore ?? null);
+  const [overallRPE, setOverallRPE] = useState(initialData?.overallRPE ?? "");
+  const [exerciseNotes, setExerciseNotes] = useState(initialData?.exerciseNotes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -324,10 +359,17 @@ export default function LogForm({
     };
 
     formData.set("payload", JSON.stringify(payload));
+    if (isEditMode && initialData?.id) {
+      formData.set("logId", initialData.id);
+    }
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await createDailyLog(formData);
+      if (isEditMode) {
+        await updateDailyLog(formData);
+      } else {
+        await createDailyLog(formData);
+      }
     } catch {
       setSubmitError("저장에 실패했습니다. 입력값을 확인하고 다시 시도해주세요.");
     } finally {
@@ -347,7 +389,9 @@ export default function LogForm({
               <Input
                 type="date"
                 value={date}
-                onChange={(e) => handleDateChange(e.target.value)}
+                onChange={(e) => !isEditMode && handleDateChange(e.target.value)}
+                readOnly={isEditMode}
+                className={isEditMode ? "bg-slate-50 text-slate-400 cursor-default" : ""}
               />
             </Field>
             <Field label="취침 시간">
@@ -795,7 +839,7 @@ export default function LogForm({
       )}
 
       <Button type="submit" size="lg" disabled={submitting} className="w-full rounded-full">
-        {submitting ? "저장 중..." : "기록 저장하기"}
+        {submitting ? "저장 중..." : isEditMode ? "수정 저장하기" : "기록 저장하기"}
       </Button>
     </form>
   );

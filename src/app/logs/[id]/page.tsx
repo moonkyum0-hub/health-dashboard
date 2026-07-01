@@ -6,6 +6,7 @@ import AiFeedbackPanel from "@/components/AiFeedbackPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { calcStreak } from "@/lib/streak";
+import LogActions from "./LogActions";
 
 export default async function LogDetailPage({
   params,
@@ -83,10 +84,15 @@ export default async function LogDetailPage({
         </div>
       )}
 
-      <h1 className="mb-1 text-xl font-display font-semibold">
-        {log.date.toISOString().slice(0, 10)} ({log.dayOfWeek})
-      </h1>
-      <p className="mb-6 text-sm text-slate-400">{log.routine}</p>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-display font-semibold">
+            {log.date.toISOString().slice(0, 10)} ({log.dayOfWeek})
+          </h1>
+          <p className="text-sm text-slate-400">{log.routine}</p>
+        </div>
+        <LogActions logId={log.id} />
+      </div>
 
       <div className="space-y-6">
         <Card>

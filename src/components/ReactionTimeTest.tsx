@@ -16,7 +16,7 @@ export default function ReactionTimeTest({
   onChange: (ms: number | null) => void;
   personalAvg?: number | null;
 }) {
-  const [phase, setPhase] = useState<Phase>("idle");
+  const [phase, setPhase] = useState<Phase>(() => (value !== null ? "done" : "idle"));
   const [round, setRound] = useState(0);
   const [times, setTimes] = useState<number[]>([]);
   const timeoutRef = useRef<number | null>(null);
