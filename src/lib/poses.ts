@@ -203,43 +203,47 @@ export const POSES = {
     forearm: 90,
     headAngle: 230,
   }),
-  // Running stride, phase A: lead leg knee driven up above hip height
-  // (thigh angle past straight-up, not just "forward" — forward-only
-  // angles can swing the thigh ahead of the body but can never lift the
-  // knee above the hip), with the lower leg tucked back toward the glute
-  // (knee flexion ~100deg). Trail leg in hip extension toe-off. The visible
-  // arm swings opposite the lead leg's phase (contralateral coordination —
-  // the arm on the same side as a forward-driving leg swings backward).
+  // Running stride, phase A: lead leg knee driven UP above hip (thigh ~318deg
+  // puts knee forward+up), heel tucked back toward glute (shank ~183deg =
+  // nearly horizontal backward from knee). Trail leg at hip extension toe-off
+  // (thigh ~130deg, shank ~160deg nearly straight). Contralateral arm: same-
+  // side arm swings backward (~148deg) when ipsilateral knee drives forward.
   RUN_STEP_A: buildPose({
     hip: [50, 55],
-    trunk: 285,
-    thigh: 320,
-    shank: 200,
+    trunk: 283,
+    thigh: 318,
+    shank: 183,
     thigh2: 130,
-    shank2: 165,
-    upperArm: 150,
-    forearm: 130,
+    shank2: 160,
+    upperArm: 148,
+    forearm: 128,
   }),
-  // Opposite phase of the running stride (mirrors thigh/thigh2 and arm swing).
+  // Opposite phase: legs swap, arm swings forward.
   RUN_STEP_B: buildPose({
     hip: [50, 55],
-    trunk: 285,
+    trunk: 283,
     thigh: 130,
-    shank: 165,
-    thigh2: 320,
-    shank2: 200,
-    upperArm: 30,
-    forearm: 50,
+    shank: 160,
+    thigh2: 318,
+    shank2: 183,
+    upperArm: 32,
+    forearm: 52,
   }),
-  // Seated, hips flexed ~90deg, knees flexed ~110-120deg, hands resting on
-  // the knees.
+  // Cross-legged seated meditation (sukhasana): hips on the floor (hip y=70),
+  // trunk upright (270deg). Each thigh extends forward ~8-12deg (nearly
+  // horizontal forward), shin folds back ~190-195deg (toward centre of body).
+  // Both legs shown to create the crossed-knee silhouette. Arms rest forward
+  // with hands toward knees (upperArm slightly forward-down, forearm nearly
+  // horizontal forward).
   SEATED_BREATHE: buildPose({
-    hip: [50, 65],
+    hip: [50, 70],
     trunk: 270,
-    thigh: 350,
-    shank: 110,
-    upperArm: 110,
-    forearm: 30,
+    thigh: 8,
+    shank: 190,
+    thigh2: 12,
+    shank2: 195,
+    upperArm: 78,
+    forearm: 8,
   }),
   // Foam-roller release: seated on the floor, torso reclined ~50deg and
   // propped on both straight arms behind the hips, legs extended forward
@@ -281,30 +285,33 @@ export const POSES = {
     upperArm: 95,
     forearm: 80,
   }),
-  // Forearm-plank base with the lead knee driven toward the chest
-  // (hip flexion ~120deg, knee flexion ~110deg, knee pulled up toward the
-  // chest); trailing leg stays extended at the 0deg straight-leg reference
-  // (opposite the trunk angle, same fix as PLANK above).
+  // HIGH PLANK mountain climber (not forearm/elbow plank).
+  // Arms straight-down (upperArm=90, forearm=90) represent palms on floor.
+  // Lead knee drives forward-and-slightly-up (thigh=190deg from the rightward
+  // 0deg reference = facing-left person's hip flexion ~70deg toward chest);
+  // shin hangs down from raised knee (shank=90deg). Trail leg extends
+  // horizontally backward (thigh2=0, shank2=0 = the prone straight-leg
+  // reference for a face-left person).
   MOUNTAIN_CLIMBER_A: buildPose({
-    hip: [58, 53],
+    hip: [58, 50],
     trunk: 180,
-    thigh: 260,
-    shank: 115,
+    thigh: 190,
+    shank: 90,
     thigh2: 0,
     shank2: 0,
-    upperArm: 95,
-    forearm: 180,
+    upperArm: 90,
+    forearm: 90,
   }),
-  // Alternate leg driven forward (crossfades with A for the running motion).
+  // Alternate leg driven forward.
   MOUNTAIN_CLIMBER_B: buildPose({
-    hip: [58, 53],
+    hip: [58, 50],
     trunk: 180,
     thigh: 0,
     shank: 0,
-    thigh2: 260,
-    shank2: 115,
-    upperArm: 95,
-    forearm: 180,
+    thigh2: 190,
+    shank2: 90,
+    upperArm: 90,
+    forearm: 90,
   }),
   // Supine tabletop: hip and knee both flexed ~90deg, one arm reaching
   // overhead (shoulder flexion ~150deg).
@@ -316,17 +323,20 @@ export const POSES = {
     upperArm: 250,
     forearm: 250,
   }),
-  // Gait-like stepping motion onto a raised step: lead leg hip flexion
-  // ~110deg, knee flexion ~110deg; trailing leg extending behind.
+  // Stair-climbing step: forward lean (trunk=280deg, ~10deg from vertical).
+  // Lead leg: high knee lift (thigh=345deg, hip flexion ~75deg), lower leg
+  // angled slightly forward with foot elevated to step up (shank=80deg).
+  // Trail leg: hip extension toe-off behind (thigh=112deg, shank=170deg
+  // near-straight ankle).
   WALK_STAIRS: buildPose({
     hip: [48, 55],
     trunk: 280,
-    thigh: 20,
-    shank: 130,
-    thigh2: 120,
+    thigh: 345,
+    shank: 80,
+    thigh2: 112,
     shank2: 170,
-    upperArm: 60,
-    forearm: 40,
+    upperArm: 55,
+    forearm: 35,
   }),
   // Prone (face down), legs straight along the floor (0deg, opposite the
   // trunk angle — same fix as PLANK above), arm resting forward — start
@@ -348,5 +358,30 @@ export const POSES = {
     shank: 0,
     upperArm: 250,
     forearm: 250,
+  }),
+  // Marching-in-place, phase A: right knee raised (thigh=330deg = hip flexion
+  // ~60deg forward-up). Shin hangs naturally below raised knee (shank=90deg).
+  // Support leg straight (thigh2=90, shank2=90). Contralateral arm swings
+  // back (upperArm=148deg) when same-side knee drives forward.
+  MARCH_A: buildPose({
+    hip: [50, 56],
+    trunk: 273,
+    thigh: 330,
+    shank: 90,
+    thigh2: 90,
+    shank2: 90,
+    upperArm: 148,
+    forearm: 130,
+  }),
+  // Marching phase B: legs swapped, arm swings forward.
+  MARCH_B: buildPose({
+    hip: [50, 56],
+    trunk: 273,
+    thigh: 90,
+    shank: 90,
+    thigh2: 330,
+    shank2: 90,
+    upperArm: 32,
+    forearm: 52,
   }),
 } satisfies Record<string, Joints>;

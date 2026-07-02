@@ -189,8 +189,8 @@ export const CATALOG_SEED: CatalogExerciseSeed[] = [
     benefit: "부담 없이 혈류를 촉진해 가벼운 각성과 컨디션 개선에 도움을 줍니다.",
     cue: "숨이 가쁘지 않게, 편안하게 호흡할 수 있는 속도를 유지하세요.",
     defaultDurationMin: 5,
-    poseStart: "STANDING",
-    poseEnd: "WALK_STAIRS",
+    poseStart: "MARCH_A",
+    poseEnd: "MARCH_B",
   },
   {
     name: "러닝",
