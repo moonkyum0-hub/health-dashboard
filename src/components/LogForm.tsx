@@ -227,7 +227,10 @@ export default function LogForm({
   }
 
   function dismissDraft() {
-    localStorage.removeItem(DRAFT_KEY);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+      window.dispatchEvent(new StorageEvent("storage", { key: DRAFT_KEY }));
+    } catch { /* ignore */ }
     setHasDraft(false);
   }
   // ─────────────────────────────────────────────────────────
@@ -470,7 +473,10 @@ export default function LogForm({
     try {
       // 제출 성공 전에 임시저장 삭제
       if (!isEditMode) {
-        try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+        try {
+          localStorage.removeItem(DRAFT_KEY);
+          window.dispatchEvent(new StorageEvent("storage", { key: DRAFT_KEY }));
+        } catch { /* ignore */ }
       }
       if (isEditMode) {
         await updateDailyLog(formData);
