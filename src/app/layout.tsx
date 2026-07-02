@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Poppins } from "next/font/google";
 import "./globals.css";
 import NavBar from "@/components/NavBar";
@@ -22,6 +22,12 @@ const poppins = Poppins({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#2563eb",
+};
+
 export const metadata: Metadata = {
   title: "My Health Dashboard",
   description: "내 건강과 생활을 한눈에",
@@ -33,7 +39,6 @@ export const metadata: Metadata = {
   },
   other: {
     "mobile-web-app-capable": "yes",
-    "theme-color": "#2563eb",
   },
 };
 
@@ -49,7 +54,6 @@ export default function RootLayout({
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-        <meta name="theme-color" content="#2563eb" />
       </head>
       <body className="min-h-full flex flex-col bg-white text-slate-900 antialiased">
         <NavBar />
