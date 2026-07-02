@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   CATEGORY_LABEL,
@@ -171,6 +171,67 @@ export default function LogForm({
   initialData?: InitialData;
 }) {
   const isEditMode = !!initialData?.id;
+
+  // ── 임시저장 ──────────────────────────────────────────────
+  const DRAFT_KEY = "mhd-new-log-draft";
+  const [hasDraft, setHasDraft] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const saveTimerRef = useRef<number | null>(null);
+
+  // 마운트 시 임시저장 존재 여부 확인
+  useEffect(() => {
+    if (isEditMode) return;
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      // 의미있는 데이터가 있을 때만 배너 표시
+      if (d.quickEnergy || d.sleepHours || d.bedTime || (d.exercises?.length > 0) || d.reactionTimeMs) {
+        setHasDraft(true);
+      }
+    } catch { /* ignore */ }
+  }, [isEditMode]);
+
+  // 임시저장 불러오기
+  function restoreDraft() {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d.date) setDate(d.date);
+      if (d.bedTime !== undefined) setBedTime(d.bedTime);
+      if (d.wakeTime !== undefined) setWakeTime(d.wakeTime);
+      if (d.sleepHours !== undefined) setSleepHours(d.sleepHours);
+      if (d.sleepQuality !== undefined) setSleepQuality(d.sleepQuality);
+      if (d.quickEnergy !== undefined) setQuickEnergy(d.quickEnergy);
+      if (d.energyMorning !== undefined) setEnergyMorning(d.energyMorning);
+      if (d.energyAfternoon !== undefined) setEnergyAfternoon(d.energyAfternoon);
+      if (d.energyEvening !== undefined) setEnergyEvening(d.energyEvening);
+      if (d.studyFocusScore !== undefined) setStudyFocusScore(d.studyFocusScore);
+      if (d.studyFocusMinutes !== undefined) setStudyFocusMinutes(d.studyFocusMinutes);
+      if (d.reactionTimeMs !== undefined) setReactionTimeMs(d.reactionTimeMs);
+      if (d.stroopResult !== undefined) setStroopResult(d.stroopResult);
+      if (d.balanceSec !== undefined) setBalanceSec(d.balanceSec);
+      if (d.digitSpan !== undefined) setDigitSpan(d.digitSpan);
+      if (d.painScore !== undefined) setPainScore(d.painScore);
+      if (d.fatigueScore !== undefined) setFatigueScore(d.fatigueScore);
+      if (d.phq2Score !== undefined) setPhq2Score(d.phq2Score);
+      if (d.chairStand !== undefined) setChairStand(d.chairStand);
+      if (d.overallRPE !== undefined) setOverallRPE(d.overallRPE);
+      if (d.exerciseNotes !== undefined) setExerciseNotes(d.exerciseNotes);
+      if (d.exercises?.length) setExercises(d.exercises);
+      if (d.meals?.length) setMeals(d.meals);
+      if (d.showDetails !== undefined) setShowDetails(d.showDetails);
+      setHasDraft(false);
+    } catch { /* ignore */ }
+  }
+
+  function dismissDraft() {
+    localStorage.removeItem(DRAFT_KEY);
+    setHasDraft(false);
+  }
+  // ─────────────────────────────────────────────────────────
+
   const [showDetails, setShowDetails] = useState(isEditMode);
   // Quick energy: single 1-10 score shown in compact mode
   const [quickEnergy, setQuickEnergy] = useState(initialData?.energyMorning ?? "");
@@ -222,6 +283,34 @@ export default function LogForm({
   const [exerciseNotes, setExerciseNotes] = useState(initialData?.exerciseNotes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // ── 자동저장 (1.5초 debounce) ────────────────────────────
+  useEffect(() => {
+    if (isEditMode) return;
+    if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = window.setTimeout(() => {
+      try {
+        const draft = {
+          date, bedTime, wakeTime, sleepHours, sleepQuality,
+          quickEnergy, energyMorning, energyAfternoon, energyEvening,
+          studyFocusScore, studyFocusMinutes,
+          reactionTimeMs, stroopResult, balanceSec, digitSpan,
+          painScore, fatigueScore, phq2Score, chairStand,
+          overallRPE, exerciseNotes, exercises, meals, showDetails,
+        };
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        setLastSaved(new Date());
+      } catch { /* ignore */ }
+    }, 1500);
+    return () => { if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current); };
+  }, [
+    isEditMode, date, bedTime, wakeTime, sleepHours, sleepQuality,
+    quickEnergy, energyMorning, energyAfternoon, energyEvening,
+    studyFocusScore, studyFocusMinutes, reactionTimeMs, stroopResult,
+    balanceSec, digitSpan, painScore, fatigueScore, phq2Score, chairStand,
+    overallRPE, exerciseNotes, exercises, meals, showDetails,
+  ]);
+  // ─────────────────────────────────────────────────────────
 
   function handleDateChange(value: string) {
     setDate(value);
@@ -379,6 +468,10 @@ export default function LogForm({
     setSubmitting(true);
     setSubmitError(null);
     try {
+      // 제출 성공 전에 임시저장 삭제
+      if (!isEditMode) {
+        try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+      }
       if (isEditMode) {
         await updateDailyLog(formData);
       } else {
@@ -393,6 +486,32 @@ export default function LogForm({
 
   return (
     <form action={handleSubmit} className="space-y-4">
+
+      {/* ── 임시저장 복원 배너 ── */}
+      {hasDraft && !isEditMode && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-amber-800">저장된 임시 기록이 있어요</p>
+            <p className="text-xs text-amber-600">이전에 작성하다 중단한 기록을 불러올 수 있어요</p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={restoreDraft}
+              className="rounded-full bg-amber-500 px-4 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+            >
+              불러오기
+            </button>
+            <button
+              type="button"
+              onClick={dismissDraft}
+              className="rounded-full border border-amber-300 px-4 py-1.5 text-xs text-amber-700 hover:bg-amber-100"
+            >
+              무시하기
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ── 빠른 기록 (항상 표시) ── */}
       <Card>
@@ -733,6 +852,14 @@ export default function LogForm({
       {submitError && (
         <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
           {submitError}
+        </p>
+      )}
+
+      {/* 자동저장 상태 */}
+      {lastSaved && !isEditMode && (
+        <p className="text-center text-xs text-slate-400">
+          자동저장됨 ·{" "}
+          {lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })}
         </p>
       )}
 
