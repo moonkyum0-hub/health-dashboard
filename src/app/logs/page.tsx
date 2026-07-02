@@ -62,7 +62,7 @@ export default async function LogsPage() {
                 ? Math.round((energies.reduce((a, b) => a + b, 0) / energies.length) * 10) / 10
                 : null;
             const energyColor =
-              energyAvg == null ? "bg-slate-200 text-slate-400"
+              energyAvg == null ? "border-2 border-dashed border-slate-200 text-slate-300 bg-white"
               : energyAvg >= 7 ? "bg-green-500 text-white"
               : energyAvg >= 4 ? "bg-yellow-400 text-white"
               : "bg-red-400 text-white";
@@ -76,7 +76,7 @@ export default async function LogsPage() {
                   <div className={`flex items-center gap-3 rounded-2xl border bg-white px-4 py-3 transition-colors hover:border-blue-200 hover:bg-blue-50 ${isToday ? "border-blue-300 ring-1 ring-blue-200" : "border-slate-100"}`}>
                     {/* 에너지 컬러 인디케이터 */}
                     <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${energyColor}`}>
-                      {energyAvg != null ? energyAvg.toFixed(1) : "—"}
+                      {energyAvg != null ? energyAvg.toFixed(1) : ""}
                     </div>
 
                     {/* 날짜 + 정보 */}
