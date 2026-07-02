@@ -4,6 +4,7 @@ import "./globals.css";
 import NavBar from "@/components/NavBar";
 import DraftNotice from "@/components/DraftNotice";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,6 +56,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <DraftNotice />
         <ServiceWorkerRegistration />
+        <InstallPrompt />
       </body>
     </html>
   );
