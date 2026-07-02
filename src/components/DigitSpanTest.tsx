@@ -176,7 +176,7 @@ export default function DigitSpanTest({
               onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
               placeholder="숫자 입력 후 확인"
               maxLength={currentLength}
-              className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-center text-2xl font-mono tracking-widest focus:border-blue-400 focus:outline-none"
+              className="w-full min-w-0 rounded-lg border border-slate-200 px-3 py-2 text-center text-2xl font-mono tracking-wide focus:border-blue-400 focus:outline-none"
             />
             <button
               type="button"

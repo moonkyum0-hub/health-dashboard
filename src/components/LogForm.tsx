@@ -692,7 +692,7 @@ export default function LogForm({
                     {tests.phq2 && <PHQ2Screen value={phq2Score} onChange={setPhq2Score} />}
                     <div className={`grid gap-4 items-start ${gridClass}`}>
                       {tests.reaction && (
-                        <div>
+                        <div className="min-w-0 overflow-hidden">
                           <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                             반응속도 — 각성도
                             <HintBadge text="5회 평균. 성인 평균 250-270ms. Deary et al., Lancet (2001)." />
@@ -701,7 +701,7 @@ export default function LogForm({
                         </div>
                       )}
                       {tests.digitSpan && (
-                        <div>
+                        <div className="min-w-0 overflow-hidden">
                           <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                             숫자 기억 — 작업기억
                             <HintBadge text="성인 정상 6-7자리. WAIS 표준 (Wechsler 1939; Miller 1956)." />
@@ -710,7 +710,7 @@ export default function LogForm({
                         </div>
                       )}
                       {tests.stroop && (
-                        <div>
+                        <div className="min-w-0 overflow-hidden">
                           <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                             스트룹 — 실행기능
                             <HintBadge text="전두엽 실행기능. Stroop (1935); Golden (1978)." />
@@ -719,7 +719,7 @@ export default function LogForm({
                         </div>
                       )}
                       {tests.balance && (
-                        <div>
+                        <div className="min-w-0 overflow-hidden">
                           <Label className="mb-1 flex items-center gap-1 text-sm font-normal text-slate-500">
                             한 발 서기 — 균형
                             <HintBadge text="정상 25초↑. 10초↓ 낙상 고위험. Bohannon et al. (1984)." />
