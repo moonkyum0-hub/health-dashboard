@@ -90,9 +90,9 @@ export const CATALOG_SEED: CatalogExerciseSeed[] = [
   {
     name: "무릎 푸쉬업",
     category: "UPPER",
-    description: "무릎을 바닥에 댄 상태로 수행하는 초급 푸쉬업입니다.",
+    description: "무릎을 바닥에 고정하고 발을 든 채 가슴을 아래위로 움직이는 초급 푸쉬업입니다.",
     benefit: "대흉근과 삼두근을 자극해 상체 기본 근력을 길러줍니다.",
-    cue: "몸통이 일직선을 유지하도록 코어에 힘을 주세요.",
+    cue: "무릎 아래는 고정한 채 가슴만 내려가도록 하고, 허리가 처지지 않게 코어를 유지하세요.",
     defaultDurationMin: 3,
     defaultSetsReps: "10회 × 3세트",
     poseStart: "PUSHUP_DOWN",
