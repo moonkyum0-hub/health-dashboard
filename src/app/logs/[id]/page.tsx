@@ -144,43 +144,60 @@ export default async function LogDetailPage({
           )}
 
           {/* ── 에너지 & 집중 ── */}
-          {(log.energyMorning || log.energyAfternoon || log.energyEvening || log.studyFocusScore) && (
-            <Card>
-              <CardContent className="pt-4">
-                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">에너지 &amp; 집중</p>
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-                  {([
-                    { label: "오전", value: log.energyMorning },
-                    { label: "오후", value: log.energyAfternoon },
-                    { label: "저녁", value: log.energyEvening },
-                    { label: "집중도", value: log.studyFocusScore },
-                  ] as const).map(({ label, value }) =>
-                    value != null ? (
-                      <div key={label} className="flex flex-col items-center gap-1">
+          {(() => {
+            // 이전 기록 호환: 3개 값이 있으면 평균, 신규는 energyMorning만 사용
+            const energies = [log.energyMorning, log.energyAfternoon, log.energyEvening].filter(
+              (v): v is number => v != null
+            );
+            const conditionVal =
+              energies.length > 0
+                ? Math.round((energies.reduce((a, b) => a + b, 0) / energies.length) * 10) / 10
+                : null;
+            const hasAny = conditionVal != null || log.studyFocusScore != null || log.studyFocusMinutes != null;
+            if (!hasAny) return null;
+            return (
+              <Card>
+                <CardContent className="pt-4">
+                  <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">컨디션 &amp; 집중</p>
+                  <div className="flex flex-wrap gap-4">
+                    {conditionVal != null && (
+                      <div className="flex flex-col items-center gap-1">
                         <div
-                          className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white ${
-                            value >= 7 ? "bg-green-500" : value >= 4 ? "bg-yellow-400" : "bg-red-400"
+                          className={`flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white ${
+                            conditionVal >= 7 ? "bg-green-500" : conditionVal >= 4 ? "bg-yellow-400" : "bg-red-400"
                           }`}
                         >
-                          {value}
+                          {conditionVal}
                         </div>
-                        <p className="text-xs text-slate-400">{label}</p>
+                        <p className="text-xs text-slate-400">컨디션</p>
                       </div>
-                    ) : null
-                  )}
-                  {log.studyFocusMinutes != null && (
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600">
-                        {log.studyFocusMinutes}
-                        <span className="text-xs font-normal">분</span>
+                    )}
+                    {log.studyFocusScore != null && (
+                      <div className="flex flex-col items-center gap-1">
+                        <div
+                          className={`flex h-16 w-16 items-center justify-center rounded-2xl text-2xl font-bold text-white ${
+                            log.studyFocusScore >= 7 ? "bg-blue-500" : log.studyFocusScore >= 4 ? "bg-blue-300" : "bg-slate-300"
+                          }`}
+                        >
+                          {log.studyFocusScore}
+                        </div>
+                        <p className="text-xs text-slate-400">집중도</p>
                       </div>
-                      <p className="text-xs text-slate-400">집중 시간</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                    )}
+                    {log.studyFocusMinutes != null && (
+                      <div className="flex flex-col items-center gap-1">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
+                          <span className="text-xl font-bold text-slate-700">{log.studyFocusMinutes}</span>
+                          <span className="text-xs text-slate-400">분</span>
+                        </div>
+                        <p className="text-xs text-slate-400">집중 시간</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* ── 객관적 측정 ── */}
           {(log.reactionTimeMs || log.stroopAccuracy != null || log.balanceSec != null ||

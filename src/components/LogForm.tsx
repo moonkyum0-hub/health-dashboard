@@ -631,7 +631,7 @@ export default function LogForm({
         className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 py-2.5 text-sm text-slate-500 hover:bg-slate-50"
       >
         {showDetails ? "▲ 간단히 보기" : "▼ 자세히 기록하기"}
-        <span className="text-xs text-slate-400">(수면 상세, 에너지 타임라인, 식단, 객관적 측정)</span>
+        <span className="text-xs text-slate-400">(수면 상세, 집중도, 식단, 객관적 측정)</span>
       </button>
 
       {/* ── 상세 섹션 ── */}
@@ -663,20 +663,11 @@ export default function LogForm({
             </CardContent>
           </Card>
 
-          {/* 에너지 타임라인 + 분석 + 측정 */}
+          {/* 집중도 + 측정 */}
           <Card>
-            <CardHeader><CardTitle>에너지 타임라인 &amp; 상태 측정</CardTitle></CardHeader>
+            <CardHeader><CardTitle>집중도 &amp; 상태 측정</CardTitle></CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Field label="오전 에너지" hint="아침 시간대 활력. 1=매우 처짐, 10=매우 활기차다.">
-                  <Input type="number" min={0} max={10} value={energyMorning} onChange={(e) => setEnergyMorning(e.target.value)} />
-                </Field>
-                <Field label="오후 에너지" hint="점심 이후 활력.">
-                  <Input type="number" min={0} max={10} value={energyAfternoon} onChange={(e) => setEnergyAfternoon(e.target.value)} />
-                </Field>
-                <Field label="저녁 에너지" hint="저녁 시간대 활력.">
-                  <Input type="number" min={0} max={10} value={energyEvening} onChange={(e) => setEnergyEvening(e.target.value)} />
-                </Field>
+              <div className="grid grid-cols-2 gap-3">
                 <Field label="집중도 (1-10)" hint="공부·업무 집중도. 1=전혀 안 됨, 10=완전 몰입.">
                   <Input type="number" min={0} max={10} value={studyFocusScore} onChange={(e) => setStudyFocusScore(e.target.value)} />
                 </Field>
@@ -684,8 +675,6 @@ export default function LogForm({
                   <Input type="number" value={studyFocusMinutes} onChange={(e) => setStudyFocusMinutes(e.target.value)} />
                 </Field>
               </div>
-
-              <EnergyAnalysis morning={energyMorning} afternoon={energyAfternoon} evening={energyEvening} focus={studyFocusScore} />
 
               {/* 객관적 측정 */}
               {(() => {
