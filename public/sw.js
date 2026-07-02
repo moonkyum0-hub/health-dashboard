@@ -4,7 +4,7 @@ const OFFLINE_URL = "/offline";
 // 설치 시 핵심 페이지 캐시
 self.addEventListener("install", (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(["/"]))
+    caches.open(CACHE).then((c) => c.addAll(["/", OFFLINE_URL]))
   );
   self.skipWaiting();
 });
@@ -37,6 +37,6 @@ self.addEventListener("fetch", (e) => {
         }
         return res;
       })
-      .catch(() => caches.match(e.request))
+      .catch(() => caches.match(e.request).then((cached) => cached ?? caches.match(OFFLINE_URL)))
   );
 });
