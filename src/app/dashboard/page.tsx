@@ -8,6 +8,7 @@ import { analyzeLogs } from "@/lib/recommend";
 import { TrendLineChart, RegionBarChart, type TrendPoint } from "@/components/TrendCharts";
 import CategoryIcon from "@/components/icons/CategoryIcon";
 import AiFeedbackPanel from "@/components/AiFeedbackPanel";
+import CollapsibleAI from "@/components/CollapsibleAI";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { computeRoleMetric, ROLE_LABEL, type UserRole } from "@/lib/roleMetrics";
@@ -52,6 +53,10 @@ export default async function DashboardPage() {
         }))
       )
     : null;
+
+  // Today's log check
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const hasTodayLog = logs.some((l) => l.date.toISOString().slice(0, 10) === todayStr);
 
   // Latest log for hero card
   const latestLog = logs.length > 0 ? logs[logs.length - 1] : null;
@@ -165,6 +170,20 @@ export default async function DashboardPage() {
             <Link href="/onboarding" className="underline hover:text-blue-800">온보딩 가이드</Link>를 다시 볼 수 있어요.
           </p>
         </div>
+      )}
+
+      {/* 오늘 기록 없음 배너 */}
+      {!hasTodayLog && logs.length >= 3 && (
+        <Link
+          href="/log/new"
+          className="mb-6 flex items-center justify-between rounded-2xl bg-blue-600 px-5 py-4 text-white hover:bg-blue-700"
+        >
+          <div>
+            <p className="text-sm font-semibold">오늘 아직 기록하지 않았어요</p>
+            <p className="text-xs text-blue-200 mt-0.5">기록하면 대시보드가 업데이트돼요</p>
+          </div>
+          <span className="shrink-0 text-sm font-bold">기록하기 →</span>
+        </Link>
       )}
 
       {/* 최근 기록 히어로 카드 */}
@@ -375,21 +394,15 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
 
-          <AiFeedbackPanel
-            endpoint="/api/feedback/weekly"
-            body={{}}
-            title="AI 주간 건강 분석 (최근 7일)"
-          />
-          <AiFeedbackPanel
-            endpoint="/api/feedback/region"
-            body={{}}
-            title="AI 부위별 진행도 평가"
-          />
-          <AiFeedbackPanel
-            endpoint="/api/feedback/correlation"
-            body={{}}
-            title="AI 운동-학습 집중도 상관관계 분석"
-          />
+          <CollapsibleAI title="주간 건강 분석 (최근 7일)">
+            <AiFeedbackPanel endpoint="/api/feedback/weekly" body={{}} title="AI 주간 건강 분석 (최근 7일)" />
+          </CollapsibleAI>
+          <CollapsibleAI title="부위별 운동 진행도">
+            <AiFeedbackPanel endpoint="/api/feedback/region" body={{}} title="AI 부위별 진행도 평가" />
+          </CollapsibleAI>
+          <CollapsibleAI title="운동·집중도 상관관계">
+            <AiFeedbackPanel endpoint="/api/feedback/correlation" body={{}} title="AI 운동-학습 집중도 상관관계 분석" />
+          </CollapsibleAI>
         </div>
       )}
     </div>
