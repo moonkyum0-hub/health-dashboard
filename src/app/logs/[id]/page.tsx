@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { calcStreak } from "@/lib/streak";
 import LogActions from "./LogActions";
+import {
+  getReactionTimeStatus,
+  getStroopAccuracyStatus,
+  getBalanceStatus,
+  getDigitSpanStatus,
+  getPainStatus,
+  getFatigueStatus,
+} from "@/lib/scoreStatus";
 
 export default async function LogDetailPage({
   params,
@@ -95,42 +103,182 @@ export default async function LogDetailPage({
       </div>
 
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>기본 정보</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-              <Stat label="취침" value={log.bedTime} />
-              <Stat label="기상" value={log.wakeTime} />
-              <Stat label="수면 시간" value={log.sleepHours ? `${log.sleepHours}h` : null} />
-              <Stat label="수면 질" value={log.sleepQuality} />
-              <Stat label="오전 에너지" value={log.energyMorning} />
-              <Stat label="오후 에너지" value={log.energyAfternoon} />
-              <Stat label="저녁 에너지" value={log.energyEvening} />
-              <Stat label="오전 집중도" value={log.studyFocusScore} />
-              <Stat
-                label="반응속도(객관적)"
-                value={log.reactionTimeMs ? `${log.reactionTimeMs}ms` : null}
-              />
-              <Stat
-                label="스트룹 정확도(객관적)"
-                value={log.stroopAccuracy !== null ? `${log.stroopAccuracy}%` : null}
-              />
-              <Stat
-                label="스트룹 평균반응(객관적)"
-                value={log.stroopAvgMs ? `${log.stroopAvgMs}ms` : null}
-              />
-              <Stat
-                label="균형 유지(객관적)"
-                value={log.balanceSec !== null ? `${log.balanceSec}초` : null}
-              />
-              <Stat label="집중 지속(분)" value={log.studyFocusMinutes} />
-              <Stat label="총 운동(분)" value={log.totalExerciseMin} />
-              <Stat label="전체 RPE" value={log.overallRPE} />
-            </dl>
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          {/* ── 수면 ── */}
+          {(log.sleepHours || log.sleepQuality || log.bedTime || log.wakeTime) && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">수면</p>
+                <div className="flex flex-wrap items-end gap-6">
+                  {log.sleepHours != null && (
+                    <div>
+                      <span className="text-4xl font-bold text-slate-800">{log.sleepHours}</span>
+                      <span className="ml-1 text-lg text-slate-400">h</span>
+                    </div>
+                  )}
+                  {log.sleepQuality != null && (
+                    <div>
+                      <p className="mb-1 text-xs text-slate-400">수면 질</p>
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 10 }, (_, i) => (
+                          <div
+                            key={i}
+                            className={`h-2.5 w-2.5 rounded-sm ${
+                              i < log.sleepQuality!
+                                ? log.sleepQuality! >= 7 ? "bg-green-400" : log.sleepQuality! >= 4 ? "bg-yellow-400" : "bg-red-400"
+                                : "bg-slate-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-0.5 text-xs text-slate-500">{log.sleepQuality}/10</p>
+                    </div>
+                  )}
+                  <div className="ml-auto text-right text-xs text-slate-400">
+                    {log.bedTime && <p>취침 <span className="font-medium text-slate-600">{log.bedTime}</span></p>}
+                    {log.wakeTime && <p>기상 <span className="font-medium text-slate-600">{log.wakeTime}</span></p>}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── 에너지 & 집중 ── */}
+          {(log.energyMorning || log.energyAfternoon || log.energyEvening || log.studyFocusScore) && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">에너지 &amp; 집중</p>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                  {([
+                    { label: "오전", value: log.energyMorning },
+                    { label: "오후", value: log.energyAfternoon },
+                    { label: "저녁", value: log.energyEvening },
+                    { label: "집중도", value: log.studyFocusScore },
+                  ] as const).map(({ label, value }) =>
+                    value != null ? (
+                      <div key={label} className="flex flex-col items-center gap-1">
+                        <div
+                          className={`flex h-12 w-12 items-center justify-center rounded-2xl text-lg font-bold text-white ${
+                            value >= 7 ? "bg-green-500" : value >= 4 ? "bg-yellow-400" : "bg-red-400"
+                          }`}
+                        >
+                          {value}
+                        </div>
+                        <p className="text-xs text-slate-400">{label}</p>
+                      </div>
+                    ) : null
+                  )}
+                  {log.studyFocusMinutes != null && (
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-600">
+                        {log.studyFocusMinutes}
+                        <span className="text-xs font-normal">분</span>
+                      </div>
+                      <p className="text-xs text-slate-400">집중 시간</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── 객관적 측정 ── */}
+          {(log.reactionTimeMs || log.stroopAccuracy != null || log.balanceSec != null ||
+            log.digitSpan != null || log.painScore != null || log.fatigueScore != null) && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">객관적 측정</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {log.reactionTimeMs != null && (() => {
+                    const s = getReactionTimeStatus(log.reactionTimeMs);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{Math.round(log.reactionTimeMs)}ms</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">반응속도</p>
+                      </div>
+                    );
+                  })()}
+                  {log.balanceSec != null && (() => {
+                    const s = getBalanceStatus(log.balanceSec);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{log.balanceSec}초</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">균형</p>
+                      </div>
+                    );
+                  })()}
+                  {log.stroopAccuracy != null && (() => {
+                    const s = getStroopAccuracyStatus(log.stroopAccuracy);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{log.stroopAccuracy}%</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">스트룹 정확도</p>
+                      </div>
+                    );
+                  })()}
+                  {log.digitSpan != null && (() => {
+                    const s = getDigitSpanStatus(log.digitSpan);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{log.digitSpan}자리</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">숫자 기억</p>
+                      </div>
+                    );
+                  })()}
+                  {log.painScore != null && (() => {
+                    const s = getPainStatus(log.painScore);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{log.painScore}/10</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">통증</p>
+                      </div>
+                    );
+                  })()}
+                  {log.fatigueScore != null && (() => {
+                    const s = getFatigueStatus(log.fatigueScore);
+                    return (
+                      <div className={`rounded-xl p-3 ${s.color}`}>
+                        <p className="text-xl font-bold text-slate-800">{log.fatigueScore}/10</p>
+                        <p className={`text-xs font-medium ${s.textColor}`}>{s.label}</p>
+                        <p className="text-xs text-slate-500">피로도</p>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* ── 활동 요약 ── */}
+          {(log.totalExerciseMin || log.overallRPE) && (
+            <Card>
+              <CardContent className="pt-4">
+                <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">활동 요약</p>
+                <div className="flex gap-6">
+                  {log.totalExerciseMin != null && (
+                    <div>
+                      <span className="text-4xl font-bold text-slate-800">{log.totalExerciseMin}</span>
+                      <span className="ml-1 text-lg text-slate-400">분</span>
+                      <p className="text-xs text-slate-400">총 운동</p>
+                    </div>
+                  )}
+                  {log.overallRPE != null && (
+                    <div>
+                      <span className="text-4xl font-bold text-slate-800">{log.overallRPE}</span>
+                      <span className="ml-1 text-lg text-slate-400">/10</span>
+                      <p className="text-xs text-slate-400">전체 RPE</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
         <Card>
           <CardHeader>
